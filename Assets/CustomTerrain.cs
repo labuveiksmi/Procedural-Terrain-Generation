@@ -7,12 +7,47 @@ using UnityEngine;
 public class CustomTerrain : MonoBehaviour
 {
     public Vector2 randomHeightRange;
+    public Texture2D heighMapImage;
+    public Vector3 heighMapScale = Vector3.one;
     public Terrain terrain;
     public TerrainData terrainData;
 
+    public float perlinXScale = 0.01f;
+    public float perlinYScale = 0.01f;
+
+    public void Perlin()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0, terrainData.heightmapWidth,
+                                                    terrainData.heightmapHeight);
+        for (int x = 0; x < terrainData.heightmapWidth; x++)
+        {
+            for (int y = 0; y < terrainData.heightmapHeight; y++)
+            {
+                heightMap[x, y] = Mathf.PerlinNoise(x * perlinXScale, y * perlinYScale);
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    public void LoadTexture()
+    {
+        float[,] heightMap = new float[terrainData.heightmapWidth, terrainData.heightmapHeight];
+        for (int x = 0; x < terrainData.heightmapWidth; x++)
+        {
+            for (int z = 0; z < terrainData.heightmapHeight; z++)
+            {
+                heightMap[x, z] = heighMapImage.GetPixel((int)heighMapScale.x * x,
+                                                        (int)heighMapScale.z * z)
+                                                        .grayscale * heighMapScale.y;
+            }
+        }
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
     public void RandomTerrain()
     {
-        float[,] heightMap = terrainData.GetHeights(0, 0, terrainData.heightmapWidth, terrainData.heightmapHeight);
+        float[,] heightMap = terrainData.GetHeights(0, 0, terrainData.heightmapWidth,
+                                                    terrainData.heightmapHeight);
         for (int x = 0; x < terrainData.heightmapWidth; x++)
         {
             for (int z = 0; z < terrainData.heightmapHeight; z++)
@@ -46,7 +81,7 @@ public class CustomTerrain : MonoBehaviour
     private void Awake()
     {
         SerializedObject tagManager = new SerializedObject(
-            AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+            AssetDatabase.LoadMainAssetAtPath("ProjectSettings/TagManager.asset"));
         SerializedProperty tagsProperty = tagManager.FindProperty("tags");
 
         Debug.Log(tagManager.ToString());

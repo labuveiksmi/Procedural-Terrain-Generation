@@ -209,8 +209,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   randomHeightRange: {x: 0, y: 0.03}
+  heighMapImage: {fileID: 2800000, guid: 520d3eb3eafa44b46845c48ce1ee5ff3, type: 3}
+  heighMapScale: {x: 1, y: 0.2, z: 1}
   terrain: {fileID: 448788373}
   terrainData: {fileID: 15600000, guid: 7df89251c5f11ad45b2ad9b89d8f2510, type: 2}
+  perlinXScale: 0.01
+  perlinYScale: 0.01
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
