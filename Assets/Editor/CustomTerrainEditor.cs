@@ -12,6 +12,8 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty heighMapImage;
     private SerializedProperty perlinXScale;
     private SerializedProperty perlinYScale;
+    private SerializedProperty perlinXOffset;
+    private SerializedProperty perlinYOffset;
     private bool showRandom = false;
     private bool showLoadHeights = false;
 
@@ -22,6 +24,8 @@ public class CustomTerrainEditor : Editor
         heighMapImage = serializedObject.FindProperty("heighMapImage");
         perlinXScale = serializedObject.FindProperty("perlinXScale");
         perlinYScale = serializedObject.FindProperty("perlinYScale");
+        perlinXOffset = serializedObject.FindProperty("perlinXOffset");
+        perlinYOffset = serializedObject.FindProperty("perlinYOffset");
     }
 
     public override void OnInspectorGUI()
@@ -46,6 +50,8 @@ public class CustomTerrainEditor : Editor
             GUILayout.Label("Generate landshaft using Perlin Noise", EditorStyles.boldLabel);
             EditorGUILayout.Slider(perlinXScale, 0, 1, new GUIContent("XScale"));
             EditorGUILayout.Slider(perlinYScale, 0, 1, new GUIContent("YScale"));
+            EditorGUILayout.IntSlider(perlinXOffset, 0, 10000, new GUIContent("XOffset"));
+            EditorGUILayout.IntSlider(perlinYOffset, 0, 10000, new GUIContent("YOffset"));
             EditorGUILayout.PropertyField(perlinYScale);
             if (GUILayout.Button("Perlin Noise"))
             {
