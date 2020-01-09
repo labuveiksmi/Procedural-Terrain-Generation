@@ -213,8 +213,23 @@ MonoBehaviour:
   heighMapScale: {x: 1, y: 0.2, z: 1}
   terrain: {fileID: 448788373}
   terrainData: {fileID: 15600000, guid: 7df89251c5f11ad45b2ad9b89d8f2510, type: 2}
-  perlinXScale: 0.01
-  perlinYScale: 0.01
+  resetTerrain: 0
+  perlinXScale: 0.005
+  perlinYScale: 0.005
+  perlinXOffset: 5921
+  perlinYOffset: 3553
+  pelinOctaves: 1
+  perlinPersistance: 5.5
+  perlinHeightScale: 0.31
+  perlinParamentrs:
+  - perlinXScale: 0.01
+    perlinYScale: 0.01
+    perlinXOffset: 0
+    perlinYOffset: 0
+    pelinOctaves: 0
+    perlinPersistance: 8
+    perlinHeightScale: 0.09
+    remove: 0
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using EditorGUITable;
 
 [CustomEditor(typeof(CustomTerrain))]
 [CanEditMultipleObjects]
@@ -14,8 +15,17 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty perlinYScale;
     private SerializedProperty perlinXOffset;
     private SerializedProperty perlinYOffset;
+    private SerializedProperty pelinOctaves;
+    private SerializedProperty perlinPersistance;
+    private SerializedProperty perlinHeightScale;
+    private SerializedProperty resetTerrain;
+
+    private GUITableState perlinParametrsTable;
+    private SerializedProperty perlinParametrs;
+
     private bool showRandom = false;
     private bool showLoadHeights = false;
+    private bool showMultiplePerlin = false;
 
     private void OnEnable()
     {
@@ -26,6 +36,12 @@ public class CustomTerrainEditor : Editor
         perlinYScale = serializedObject.FindProperty("perlinYScale");
         perlinXOffset = serializedObject.FindProperty("perlinXOffset");
         perlinYOffset = serializedObject.FindProperty("perlinYOffset");
+        pelinOctaves = serializedObject.FindProperty("pelinOctaves");
+        perlinPersistance = serializedObject.FindProperty("perlinPersistance");
+        perlinHeightScale = serializedObject.FindProperty("perlinHeightScale");
+        resetTerrain = serializedObject.FindProperty("resetTerrain");
+        perlinParametrsTable = new GUITableState("perlinParametrsTable");
+        perlinParametrs = serializedObject.FindProperty("perlinParamentrs");
     }
 
     public override void OnInspectorGUI()
@@ -33,7 +49,7 @@ public class CustomTerrainEditor : Editor
         serializedObject.Update();
 
         CustomTerrain terrain = (CustomTerrain)target;
-
+        EditorGUILayout.PropertyField(resetTerrain);
         showRandom = EditorGUILayout.Foldout(showRandom, "Random");
 
         if (showRandom)
@@ -52,10 +68,43 @@ public class CustomTerrainEditor : Editor
             EditorGUILayout.Slider(perlinYScale, 0, 1, new GUIContent("YScale"));
             EditorGUILayout.IntSlider(perlinXOffset, 0, 10000, new GUIContent("XOffset"));
             EditorGUILayout.IntSlider(perlinYOffset, 0, 10000, new GUIContent("YOffset"));
-            EditorGUILayout.PropertyField(perlinYScale);
+            EditorGUILayout.IntSlider(pelinOctaves, 1, 10, new GUIContent("pelinOctaves"));
+            EditorGUILayout.Slider(perlinPersistance, 0.1f, 10, new GUIContent("perlinPersistance"));
+            EditorGUILayout.Slider(perlinHeightScale, 0, 1, new GUIContent("perlinHeightScale"));
+
             if (GUILayout.Button("Perlin Noise"))
             {
                 terrain.Perlin();
+            }
+        }
+        showMultiplePerlin = EditorGUILayout.Foldout(showMultiplePerlin, "Multiple Perline Noises");
+        if (showMultiplePerlin)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Multiple Perline Noises", EditorStyles.boldLabel);
+            perlinParametrsTable = GUITableLayout.DrawTable(perlinParametrsTable,
+                serializedObject.FindProperty(nameof(terrain.perlinParamentrs)));
+            GUILayout.Space(20);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+"))
+            {
+                terrain.AddNewPerlin();
+            }
+            if (GUILayout.Button("-"))
+            {
+                terrain.RemovePerlin();
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Multiple Perlin Terrain"))
+            {
+                terrain.MultiplePerlinTerrain();
+            }
+
+            if (GUILayout.Button("Generate"))
+            {
+                terrain.MultiplePerlinTerrain();
             }
         }
         showLoadHeights = EditorGUILayout.Foldout(showLoadHeights, "Load heights");
