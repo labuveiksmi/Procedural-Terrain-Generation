@@ -26,6 +26,7 @@ public class CustomTerrainEditor : Editor
     private bool showRandom = false;
     private bool showLoadHeights = false;
     private bool showMultiplePerlin = false;
+    private bool showVoronoi = false;
 
     private void OnEnable()
     {
@@ -121,6 +122,18 @@ public class CustomTerrainEditor : Editor
             }
         }
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        showVoronoi = EditorGUILayout.Foldout(showVoronoi, "Voronoi Tessellation");
+        if (showVoronoi)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Generate pike with voronoi tessellation", EditorStyles.boldLabel);
+
+            if (GUILayout.Button("Voronoi"))
+            {
+                terrain.VoronoiTessellation();
+            }
+        }
         if (GUILayout.Button("Reset"))
         {
             terrain.ResetTerrain();
