@@ -28,6 +28,7 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty voronoiMaxHeight;
     private SerializedProperty voronoiMinHeight;
     private SerializedProperty voronoiPeaksCount;
+    private SerializedProperty voronoiFunction;
 
     private bool showRandom = false;
     private bool showLoadHeights = false;
@@ -69,6 +70,7 @@ public class CustomTerrainEditor : Editor
         voronoiMaxHeight = serializedObject.FindProperty("voronoiMaxHeight");
         voronoiMinHeight = serializedObject.FindProperty("voronoiMinHeight");
         voronoiPeaksCount = serializedObject.FindProperty("voronoiPeaksCount");
+        voronoiFunction = serializedObject.FindProperty("voronoiFunction");
     }
 
     public override void OnInspectorGUI()
@@ -180,6 +182,7 @@ public class CustomTerrainEditor : Editor
             GUILayout.Label("Generate pikes with voronoi tessellation", EditorStyles.label);
 
             EditorGUILayout.IntSlider(voronoiPeaksCount, 1, 20, new GUIContent("PeaksCount"));
+            EditorGUILayout.PropertyField(voronoiFunction);
             EditorGUILayout.Slider(voronoiFallOff, 0f, 10f, new GUIContent("FallOff"));
             EditorGUILayout.Slider(voronoiDropOff, 0f, 10f, new GUIContent("DropOff"));
             EditorGUILayout.Slider(voronoiMaxHeight, 0f, 1f, new GUIContent("MaxHeight"));

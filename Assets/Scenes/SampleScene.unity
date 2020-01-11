@@ -226,6 +226,7 @@ MonoBehaviour:
   voronoiMaxHeight: 0.48
   voronoiMinHeight: 0.16
   voronoiPeaksCount: 10
+  voronoiFunction: 2
   perlinParamentrs:
   - perlinXScale: 0.01
     perlinYScale: 0.01

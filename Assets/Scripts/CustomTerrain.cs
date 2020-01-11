@@ -28,6 +28,16 @@ public class CustomTerrain : MonoBehaviour
     public float voronoiMinHeight = 0f;
     public int voronoiPeaksCount = 1;
 
+    public VoronoiFunction voronoiFunction;
+
+    public enum VoronoiFunction
+    {
+        Linear,
+        Power,
+        Combined,
+        SinPow
+    }
+
     [System.Serializable]
     public class PerlinParametrs
     {
@@ -174,7 +184,25 @@ public class CustomTerrain : MonoBehaviour
                     if (!(x == peak.x && y == peak.z))
                     {
                         float distanceToPeak = Vector2.Distance(peakLocation, new Vector2(x, y)) / maxDistance;
-                        float height = peak.y - Mathf.Pow(distanceToPeak, voronoiFallOff) - distanceToPeak * voronoiDropOff;
+                        float height;
+                        if (voronoiFunction == VoronoiFunction.Power)
+                        {
+                            height = peak.y - Mathf.Pow(distanceToPeak * 3, voronoiFallOff);
+                        }
+                        else if (voronoiFunction == VoronoiFunction.Combined)
+                        {
+                            height = peak.y - Mathf.Pow(distanceToPeak * 3, voronoiFallOff) - distanceToPeak * voronoiDropOff;
+                        }
+                        else if (voronoiFunction == VoronoiFunction.SinPow)
+                        {
+                            height = peak.y - Mathf.Pow(distanceToPeak * 3, voronoiFallOff)
+                                - Mathf.Sin(distanceToPeak * 2 * Mathf.PI) / voronoiDropOff;
+                        }
+                        else
+                        {
+                            height = peak.y - distanceToPeak * voronoiDropOff;
+                        }
+
                         if (height > heightMap[x, y])
                         {
                             heightMap[x, y] = height;
@@ -183,7 +211,6 @@ public class CustomTerrain : MonoBehaviour
                 }
             }
         }
-
         terrainData.SetHeights(0, 0, heightMap);
     }
 
