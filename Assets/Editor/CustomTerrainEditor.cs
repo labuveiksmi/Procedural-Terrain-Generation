@@ -23,6 +23,12 @@ public class CustomTerrainEditor : Editor
     private GUITableState perlinParametrsTable;
     private SerializedProperty perlinParametrs;
 
+    private SerializedProperty voronoiFallOff;
+    private SerializedProperty voronoiDropOff;
+    private SerializedProperty voronoiMaxHeight;
+    private SerializedProperty voronoiMinHeight;
+    private SerializedProperty voronoiPeaksCount;
+
     private bool showRandom = false;
     private bool showLoadHeights = false;
     private bool showMultiplePerlin = false;
@@ -30,9 +36,20 @@ public class CustomTerrainEditor : Editor
 
     private void OnEnable()
     {
+        RandomTerrainProperties();
+        PerlinProperties();
+        VoronoiProperties();
+    }
+
+    private void RandomTerrainProperties()
+    {
         randomHeightRange = serializedObject.FindProperty("randomHeightRange");
         heighMapScale = serializedObject.FindProperty("heighMapScale");
         heighMapImage = serializedObject.FindProperty("heighMapImage");
+    }
+
+    private void PerlinProperties()
+    {
         perlinXScale = serializedObject.FindProperty("perlinXScale");
         perlinYScale = serializedObject.FindProperty("perlinYScale");
         perlinXOffset = serializedObject.FindProperty("perlinXOffset");
@@ -45,12 +62,84 @@ public class CustomTerrainEditor : Editor
         perlinParametrs = serializedObject.FindProperty("perlinParamentrs");
     }
 
+    private void VoronoiProperties()
+    {
+        voronoiFallOff = serializedObject.FindProperty("voronoiFallOff");
+        voronoiDropOff = serializedObject.FindProperty("voronoiDropOff");
+        voronoiMaxHeight = serializedObject.FindProperty("voronoiMaxHeight");
+        voronoiMinHeight = serializedObject.FindProperty("voronoiMinHeight");
+        voronoiPeaksCount = serializedObject.FindProperty("voronoiPeaksCount");
+    }
+
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
         CustomTerrain terrain = (CustomTerrain)target;
         EditorGUILayout.PropertyField(resetTerrain);
+        RandomTerrainGUI(terrain);
+        MultiplePerlinGUI(terrain);
+        LoadingHeightGUI(terrain);
+        VoronoiTessellationGUI(terrain);
+        if (GUILayout.Button("Reset"))
+        {
+            terrain.ResetTerrain();
+        }
+        serializedObject.ApplyModifiedProperties();
+    }
+
+    private void LoadingHeightGUI(CustomTerrain terrain)
+    {
+        showLoadHeights = EditorGUILayout.Foldout(showLoadHeights, "Load heights");
+        if (showLoadHeights)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Load heights from texture", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(heighMapImage);
+            EditorGUILayout.PropertyField(heighMapScale);
+
+            if (GUILayout.Button("Load Texture"))
+            {
+                terrain.LoadTexture();
+            }
+        }
+    }
+
+    private void MultiplePerlinGUI(CustomTerrain terrain)
+    {
+        showMultiplePerlin = EditorGUILayout.Foldout(showMultiplePerlin, "Multiple Perline Noises");
+        if (showMultiplePerlin)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Multiple Perline Noises", EditorStyles.boldLabel);
+            perlinParametrsTable = GUITableLayout.DrawTable(perlinParametrsTable,
+                serializedObject.FindProperty(nameof(terrain.perlinParamentrs)));
+            GUILayout.Space(20);
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+"))
+            {
+                terrain.AddNewPerlin();
+            }
+            if (GUILayout.Button("-"))
+            {
+                terrain.RemovePerlin();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Multiple Perlin Terrain"))
+            {
+                terrain.MultiplePerlinTerrain();
+            }
+            if (GUILayout.Button("Generate"))
+            {
+                terrain.MultiplePerlinTerrain();
+            }
+        }
+    }
+
+    private void RandomTerrainGUI(CustomTerrain terrain)
+    {
         showRandom = EditorGUILayout.Foldout(showRandom, "Random");
 
         if (showRandom)
@@ -78,66 +167,28 @@ public class CustomTerrainEditor : Editor
                 terrain.Perlin();
             }
         }
-        showMultiplePerlin = EditorGUILayout.Foldout(showMultiplePerlin, "Multiple Perline Noises");
-        if (showMultiplePerlin)
-        {
-            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-            GUILayout.Label("Multiple Perline Noises", EditorStyles.boldLabel);
-            perlinParametrsTable = GUITableLayout.DrawTable(perlinParametrsTable,
-                serializedObject.FindProperty(nameof(terrain.perlinParamentrs)));
-            GUILayout.Space(20);
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("+"))
-            {
-                terrain.AddNewPerlin();
-            }
-            if (GUILayout.Button("-"))
-            {
-                terrain.RemovePerlin();
-            }
+    }
 
-            EditorGUILayout.EndHorizontal();
-
-            if (GUILayout.Button("Multiple Perlin Terrain"))
-            {
-                terrain.MultiplePerlinTerrain();
-            }
-
-            if (GUILayout.Button("Generate"))
-            {
-                terrain.MultiplePerlinTerrain();
-            }
-        }
-        showLoadHeights = EditorGUILayout.Foldout(showLoadHeights, "Load heights");
-        if (showLoadHeights)
-        {
-            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-            GUILayout.Label("Load heights from texture", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(heighMapImage);
-            EditorGUILayout.PropertyField(heighMapScale);
-
-            if (GUILayout.Button("Load Texture"))
-            {
-                terrain.LoadTexture();
-            }
-        }
+    private void VoronoiTessellationGUI(CustomTerrain terrain)
+    {
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         showVoronoi = EditorGUILayout.Foldout(showVoronoi, "Voronoi Tessellation");
         if (showVoronoi)
         {
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-            GUILayout.Label("Generate pike with voronoi tessellation", EditorStyles.boldLabel);
+            GUILayout.Label("Generate pikes with voronoi tessellation", EditorStyles.label);
+
+            EditorGUILayout.IntSlider(voronoiPeaksCount, 1, 20, new GUIContent("PeaksCount"));
+            EditorGUILayout.Slider(voronoiFallOff, 0f, 10f, new GUIContent("FallOff"));
+            EditorGUILayout.Slider(voronoiDropOff, 0f, 10f, new GUIContent("DropOff"));
+            EditorGUILayout.Slider(voronoiMaxHeight, 0f, 1f, new GUIContent("MaxHeight"));
+            EditorGUILayout.Slider(voronoiMinHeight, 0f, 1f, new GUIContent("MinHeight"));
 
             if (GUILayout.Button("Voronoi"))
             {
                 terrain.VoronoiTessellation();
             }
         }
-        if (GUILayout.Button("Reset"))
-        {
-            terrain.ResetTerrain();
-        }
-        serializedObject.ApplyModifiedProperties();
     }
 }
