@@ -30,16 +30,34 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty voronoiPeaksCount;
     private SerializedProperty voronoiFunction;
 
+    private SerializedProperty mpRoughtness;
+    private SerializedProperty mpMinHeight;
+    private SerializedProperty mpMaxHeight;
+    private SerializedProperty mpDampererPower;
+
+    private SerializedProperty smoothAmount;
+
     private bool showRandom = false;
     private bool showLoadHeights = false;
     private bool showMultiplePerlin = false;
     private bool showVoronoi = false;
+    private bool midpointDisplacement = false;
 
     private void OnEnable()
     {
         RandomTerrainProperties();
         PerlinProperties();
         VoronoiProperties();
+        MidpointDisplacementProperties();
+        smoothAmount = serializedObject.FindProperty("smoothAmount");
+    }
+
+    private void MidpointDisplacementProperties()
+    {
+        mpRoughtness = serializedObject.FindProperty("mpRoughtness");
+        mpMinHeight = serializedObject.FindProperty("mpMinHeight");
+        mpMaxHeight = serializedObject.FindProperty("mpMaxHeight");
+        mpDampererPower = serializedObject.FindProperty("mpDampererPower");
     }
 
     private void RandomTerrainProperties()
@@ -83,11 +101,37 @@ public class CustomTerrainEditor : Editor
         MultiplePerlinGUI(terrain);
         LoadingHeightGUI(terrain);
         VoronoiTessellationGUI(terrain);
+        MidpointDisplacementGUI(terrain);
+
+        EditorGUILayout.IntSlider(smoothAmount, 1, 20, new GUIContent("Times"));
+        if (GUILayout.Button("Smooth"))
+        {
+            terrain.Smooth();
+        }
+
         if (GUILayout.Button("Reset"))
         {
             terrain.ResetTerrain();
         }
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private void MidpointDisplacementGUI(CustomTerrain terrain)
+    {
+        midpointDisplacement = EditorGUILayout.Foldout(midpointDisplacement, "MidpointDisplacement");
+        if (midpointDisplacement)
+        {
+            GUILayout.Label("Midpoint Displacement", EditorStyles.boldLabel);
+            EditorGUILayout.Slider(mpRoughtness, 0f, 5f, new GUIContent("roughtness"));
+            EditorGUILayout.PropertyField(mpMinHeight, new GUIContent("MP Min Heigt"));
+            EditorGUILayout.PropertyField(mpMaxHeight, new GUIContent("MP Max Heigt"));
+            EditorGUILayout.PropertyField(mpDampererPower, new GUIContent("MP Damperer Power"));
+
+            if (GUILayout.Button("Midpoint Displacement"))
+            {
+                terrain.MidpointDisplacement();
+            }
+        }
     }
 
     private void LoadingHeightGUI(CustomTerrain terrain)

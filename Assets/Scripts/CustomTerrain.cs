@@ -28,6 +28,12 @@ public class CustomTerrain : MonoBehaviour
     public float voronoiMinHeight = 0f;
     public int voronoiPeaksCount = 1;
 
+    public float mpRoughtness = 2f;
+    public float mpMinHeight = 0f;
+    public float mpMaxHeight = 1f;
+    public float mpDampererPower = 1f;
+
+    public int smoothAmount = 1;
     public VoronoiFunction voronoiFunction;
 
     public enum VoronoiFunction
@@ -56,7 +62,7 @@ public class CustomTerrain : MonoBehaviour
         new PerlinParametrs()
     };
 
-    private float[,] GetHeights()
+    private float[,] GetHeightMap()
     {
         float[,] heightMap;
         if (resetTerrain)
@@ -73,7 +79,7 @@ public class CustomTerrain : MonoBehaviour
 
     public void Perlin()
     {
-        float[,] heightMap = GetHeights();
+        float[,] heightMap = GetHeightMap();
         for (int x = 0; x < terrainData.heightmapWidth; x++)
         {
             for (int y = 0; y < terrainData.heightmapHeight; y++)
@@ -88,7 +94,7 @@ public class CustomTerrain : MonoBehaviour
 
     public void MultiplePerlinTerrain()
     {
-        float[,] heightMap = GetHeights();
+        float[,] heightMap = GetHeightMap();
         for (int x = 0; x < terrainData.heightmapWidth; x++)
         {
             for (int y = 0; y < terrainData.heightmapHeight; y++)
@@ -129,7 +135,7 @@ public class CustomTerrain : MonoBehaviour
 
     public void LoadTexture()
     {
-        float[,] heightMap = GetHeights();
+        float[,] heightMap = GetHeightMap();
         for (int x = 0; x < terrainData.heightmapWidth; x++)
         {
             for (int z = 0; z < terrainData.heightmapHeight; z++)
@@ -144,7 +150,7 @@ public class CustomTerrain : MonoBehaviour
 
     public void RandomTerrain()
     {
-        float[,] heightMap = GetHeights();
+        float[,] heightMap = GetHeightMap();
         for (int x = 0; x < terrainData.heightmapWidth; x++)
         {
             for (int z = 0; z < terrainData.heightmapHeight; z++)
@@ -157,7 +163,7 @@ public class CustomTerrain : MonoBehaviour
 
     public void VoronoiTessellation()
     {
-        float[,] heightMap = GetHeights();
+        float[,] heightMap = GetHeightMap();
 
         for (int i = 0; i < voronoiPeaksCount; i++)
         {
@@ -214,6 +220,121 @@ public class CustomTerrain : MonoBehaviour
         terrainData.SetHeights(0, 0, heightMap);
     }
 
+    public void MidpointDisplacement()
+    {
+        float[,] heightMap = GetHeightMap();
+        int width = terrainData.heightmapWidth - 1;
+
+        int cornerX, cornerY;
+        int squareSize = width;
+        float heightMin = mpMinHeight;
+        float heightMax = mpMaxHeight;
+        //float height = squareSize / 200f;
+
+        float heightDampener = Mathf.Pow(mpDampererPower, -1 * mpRoughtness);
+        int midX, midY;
+        int pmidXL, pmidXR, pmidYU, pmidYD;
+
+        //heightMap[0, 0] = Random.Range(0, 0.2f);
+        //heightMap[0, terrainData.heightmapHeight - 2] = Random.Range(0, 0.2f);
+        //heightMap[terrainData.heightmapHeight - 2, 0] = Random.Range(0, 0.2f);
+        //heightMap[terrainData.heightmapHeight - 2, terrainData.heightmapHeight - 2] = Random.Range(0, 0.2f);
+        while (squareSize > 0)
+        {
+            for (int x = 0; x < width; x += squareSize)
+            {
+                for (int y = 0; y < width; y += squareSize)
+                {
+                    cornerX = x + squareSize;
+                    cornerY = y + squareSize;
+                    midX = (x + cornerX) / 2;
+                    midY = (y + cornerY) / 2;
+
+                    heightMap[midX, midY] = (heightMap[x, y] +
+                                            heightMap[x, cornerY] +
+                                            heightMap[cornerX, y] +
+                                            heightMap[cornerX, cornerY]) / 4f + Random.Range(heightMin, heightMax);
+                }
+            }
+            for (int x = 0; x < width; x += squareSize)
+            {
+                for (int y = 0; y < width; y += squareSize)
+                {
+                    cornerX = x + squareSize;
+                    cornerY = y + squareSize;
+
+                    midX = x + squareSize / 2;
+                    midY = y + squareSize / 2;
+
+                    pmidXR = midX + squareSize;
+                    pmidYU = midY + squareSize;
+                    pmidXL = midX - squareSize;
+                    pmidYD = midY - squareSize;
+
+                    if (pmidXL <= 0 || pmidYD <= 0 ||
+                        pmidXR >= width - 1 || pmidYU >= width - 1)
+                    {
+                        continue;
+                    }
+
+                    heightMap[midX, y] = (heightMap[x, y] +
+                                            heightMap[midX, midY] +
+                                            heightMap[cornerX, y] +
+                                            heightMap[midX, pmidYD]) / 4f + Random.Range(heightMin, heightMax);
+                    heightMap[x, midY] = (heightMap[x, y] +
+                                            heightMap[midX, midY] +
+                                            heightMap[x, cornerY] +
+                                            heightMap[pmidXL, midY]) / 4f + Random.Range(heightMin, heightMax);
+                    heightMap[cornerX, midY] = (heightMap[cornerX, cornerY] +
+                                            heightMap[midX, midY] +
+                                            heightMap[cornerX, y] +
+                                            heightMap[pmidXR, midY]) / 4f + Random.Range(heightMin, heightMax);
+                    heightMap[midX, cornerY] = (heightMap[midX, pmidYU] +
+                                           heightMap[cornerX, cornerY] +
+                                           heightMap[midX, midY] +
+                                           heightMap[x, cornerY]) / 4f + Random.Range(heightMin, heightMax);
+                }
+            }
+
+            squareSize = squareSize / 2;
+            heightMax *= heightDampener;
+            heightMin *= heightDampener;
+        }
+
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    public void Smooth()
+    {
+        float[,] heightMap = terrainData.GetHeights(0, 0, terrainData.heightmapWidth,
+                                                    terrainData.heightmapHeight);
+        float progress = 0;
+        EditorUtility.DisplayProgressBar("Smoothing terrain", "Smoothing in progress", progress);
+        for (int i = 0; i <= smoothAmount; i++)
+        {
+            for (int y = 0; y < terrainData.heightmapHeight; y++)
+            {
+                for (int x = 0; x < terrainData.heightmapWidth; x++)
+                {
+                    float avgHeight = heightMap[x, y];
+
+                    List<Vector2> neighboards = GenerateNeighbords(new Vector2(x, y), terrainData.heightmapHeight,
+                                                                   terrainData.heightmapWidth);
+                    foreach (Vector2 vector2 in neighboards)
+                    {
+                        avgHeight += heightMap[(int)vector2.x, (int)vector2.y];
+                    }
+                    heightMap[x, y] = avgHeight / (neighboards.Count + 1); ;
+                }
+            }
+            progress++;
+            EditorUtility.DisplayProgressBar("Smoothing terrain", "Smoothing in progress", progress / smoothAmount);
+        }
+        EditorUtility.ClearProgressBar();
+
+        terrainData.SetHeights(0, 0, heightMap);
+    }
+
     public void ResetTerrain()
     {
         float[,] heightMap = new float[terrainData.heightmapWidth, terrainData.heightmapHeight];
@@ -225,6 +346,29 @@ public class CustomTerrain : MonoBehaviour
             }
         }
         terrainData.SetHeights(0, 0, heightMap);
+    }
+
+    private List<Vector2> GenerateNeighbords(Vector2 position, int width, int height)
+    {
+        List<Vector2> neighboards = new List<Vector2>();
+
+        for (int y = -1; y < 2; y++)
+        {
+            for (int x = -1; x < 2; x++)
+            {
+                if (!(x == 0 && y == 0))
+                {
+                    Vector2 neighboardPosition = new Vector2(Mathf.Clamp(position.x + x, 0, width - 1),
+                                                             Mathf.Clamp(position.y + y, 0, height - 1));
+                    if (!neighboards.Contains(neighboardPosition))
+                    {
+                        neighboards.Add(neighboardPosition);
+                    }
+                }
+            }
+        }
+
+        return neighboards;
     }
 
     private void OnEnable()
