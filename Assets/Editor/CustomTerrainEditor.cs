@@ -37,11 +37,15 @@ public class CustomTerrainEditor : Editor
 
     private SerializedProperty smoothAmount;
 
+    private SerializedProperty splatHeights;
+    private GUITableState splatMapTable;
+
     private bool showRandom = false;
     private bool showLoadHeights = false;
     private bool showMultiplePerlin = false;
     private bool showVoronoi = false;
     private bool midpointDisplacement = false;
+    private bool showSplatMaps = false;
 
     private void OnEnable()
     {
@@ -49,6 +53,7 @@ public class CustomTerrainEditor : Editor
         PerlinProperties();
         VoronoiProperties();
         MidpointDisplacementProperties();
+        SplatMapProperties();
         smoothAmount = serializedObject.FindProperty("smoothAmount");
     }
 
@@ -91,6 +96,12 @@ public class CustomTerrainEditor : Editor
         voronoiFunction = serializedObject.FindProperty("voronoiFunction");
     }
 
+    private void SplatMapProperties()
+    {
+        splatMapTable = new GUITableState("perlinParametrsTable");
+        splatHeights = serializedObject.FindProperty("perlinParamentrs");
+    }
+
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -102,6 +113,7 @@ public class CustomTerrainEditor : Editor
         LoadingHeightGUI(terrain);
         VoronoiTessellationGUI(terrain);
         MidpointDisplacementGUI(terrain);
+        SplatMapsGUI(terrain);
 
         EditorGUILayout.IntSlider(smoothAmount, 1, 20, new GUIContent("Times"));
         if (GUILayout.Button("Smooth"))
@@ -235,6 +247,35 @@ public class CustomTerrainEditor : Editor
             if (GUILayout.Button("Voronoi"))
             {
                 terrain.VoronoiTessellation();
+            }
+        }
+    }
+
+    private void SplatMapsGUI(CustomTerrain terrain)
+    {
+        showSplatMaps = EditorGUILayout.Foldout(showSplatMaps, "Splat Maps");
+        if (showSplatMaps)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Splat Maps", EditorStyles.boldLabel);
+            splatMapTable = GUITableLayout.DrawTable(splatMapTable,
+                serializedObject.FindProperty(nameof(terrain.splatHeights)));
+            GUILayout.Space(20);
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+"))
+            {
+                terrain.AddNewSplatHeight();
+            }
+            if (GUILayout.Button("-"))
+            {
+                terrain.RemoveSplatHeight();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Generate"))
+            {
+                terrain.SplatMaps();
             }
         }
     }

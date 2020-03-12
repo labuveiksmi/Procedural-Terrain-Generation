@@ -62,6 +62,60 @@ public class CustomTerrain : MonoBehaviour
         new PerlinParametrs()
     };
 
+    [System.Serializable]
+    public class SplatHeights
+    {
+        public Texture2D texture = null;
+        public float minHeight = 0.1f;
+        public float maxHeight = 0.2f;
+        public Vector2 tileOffset = new Vector2(0, 0);
+        public Vector2 tileSize = new Vector2(50, 50);
+        public bool remove = false;
+    }
+
+    public List<SplatHeights> splatHeights = new List<SplatHeights>()
+    {
+        new SplatHeights()
+    };
+
+    public void AddNewSplatHeight()
+    {
+        splatHeights.Add(new SplatHeights());
+    }
+
+    public void RemoveSplatHeight()
+    {
+        List<SplatHeights> keptSplatHeights = new List<SplatHeights>();
+
+        foreach (SplatHeights splat in splatHeights)
+        {
+            if (!splat.remove)
+            {
+                keptSplatHeights.Add(splat);
+            }
+        }
+
+        if (keptSplatHeights.Count == 0)
+        {
+            keptSplatHeights.Add(splatHeights[0]);
+        }
+        splatHeights = keptSplatHeights;
+    }
+
+    public void SplatMaps()
+    {
+        List<TerrainLayer> newSplatPrototypes = new List<TerrainLayer>();
+        for (int i = 0; i < splatHeights.Count; i++)
+        {
+            newSplatPrototypes.Add(new TerrainLayer());
+            newSplatPrototypes[i].diffuseTexture = splatHeights[i].texture;
+            newSplatPrototypes[i].tileOffset = splatHeights[i].tileOffset;
+            newSplatPrototypes[i].tileSize = splatHeights[i].tileSize;
+            newSplatPrototypes[i].diffuseTexture.Apply(true);
+        }
+        terrainData.terrainLayers = newSplatPrototypes.ToArray();
+    }
+
     private float[,] GetHeightMap()
     {
         float[,] heightMap;
@@ -229,16 +283,11 @@ public class CustomTerrain : MonoBehaviour
         int squareSize = width;
         float heightMin = mpMinHeight;
         float heightMax = mpMaxHeight;
-        //float height = squareSize / 200f;
 
         float heightDampener = Mathf.Pow(mpDampererPower, -1 * mpRoughtness);
         int midX, midY;
         int pmidXL, pmidXR, pmidYU, pmidYD;
 
-        //heightMap[0, 0] = Random.Range(0, 0.2f);
-        //heightMap[0, terrainData.heightmapHeight - 2] = Random.Range(0, 0.2f);
-        //heightMap[terrainData.heightmapHeight - 2, 0] = Random.Range(0, 0.2f);
-        //heightMap[terrainData.heightmapHeight - 2, terrainData.heightmapHeight - 2] = Random.Range(0, 0.2f);
         while (squareSize > 0)
         {
             for (int x = 0; x < width; x += squareSize)
