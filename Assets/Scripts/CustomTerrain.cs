@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -104,16 +105,59 @@ public class CustomTerrain : MonoBehaviour
 
     public void SplatMaps()
     {
-        List<TerrainLayer> newSplatPrototypes = new List<TerrainLayer>();
+        List<TerrainLayer> newTerrainLayers = new List<TerrainLayer>();
         for (int i = 0; i < splatHeights.Count; i++)
         {
-            newSplatPrototypes.Add(new TerrainLayer());
-            newSplatPrototypes[i].diffuseTexture = splatHeights[i].texture;
-            newSplatPrototypes[i].tileOffset = splatHeights[i].tileOffset;
-            newSplatPrototypes[i].tileSize = splatHeights[i].tileSize;
-            newSplatPrototypes[i].diffuseTexture.Apply(true);
+            newTerrainLayers.Add(new TerrainLayer());
+            newTerrainLayers[i].diffuseTexture = splatHeights[i].texture;
+            newTerrainLayers[i].tileOffset = splatHeights[i].tileOffset;
+            newTerrainLayers[i].tileSize = splatHeights[i].tileSize;
+            newTerrainLayers[i].diffuseTexture.Apply(true);
         }
-        terrainData.terrainLayers = newSplatPrototypes.ToArray();
+        terrainData.terrainLayers = newTerrainLayers.ToArray();
+
+        float[,] heightMap = terrainData.GetHeights(0, 0, terrainData.heightmapWidth,
+                                                        terrainData.heightmapHeight);
+        float[,,] splatMapData = new float[terrainData.alphamapWidth,
+            terrainData.alphamapHeight, terrainData.alphamapLayers];
+
+        for (int y = 0; y < terrainData.alphamapHeight; y++)
+        {
+            for (int x = 0; x < terrainData.alphamapWidth; x++)
+            {
+                float[] splat = new float[terrainData.alphamapLayers];
+                for (int i = 0; i < terrainData.alphamapLayers; i++)
+                {
+                    float thisHeightStart = splatHeights[i].minHeight;
+                    float thisHeightStop = splatHeights[i].maxHeight;
+
+                    if (heightMap[x, y] >= thisHeightStart && heightMap[x, y] <= thisHeightStop)
+                    {
+                        splat[i] = 1;
+                    }
+                }
+                NormalizeVector(splat);
+
+                for (int j = 0; j < splatHeights.Count; j++)
+                {
+                    splatMapData[x, y, j] = splat[j];
+                }
+            }
+        }
+        terrainData.SetAlphamaps(0, 0, splatMapData);
+    }
+
+    private void NormalizeVector(float[] splat)
+    {
+        float total = 0;
+        foreach (var v in splat)
+        {
+            total += v;
+        }
+        for (int i = 0; i < splat.Length; i++)
+        {
+            splat[i] /= total;
+        }
     }
 
     private float[,] GetHeightMap()
@@ -209,7 +253,7 @@ public class CustomTerrain : MonoBehaviour
         {
             for (int z = 0; z < terrainData.heightmapHeight; z++)
             {
-                heightMap[x, z] += Random.Range(randomHeightRange.x, randomHeightRange.y);
+                heightMap[x, z] += UnityEngine.Random.Range(randomHeightRange.x, randomHeightRange.y);
             }
         }
         terrainData.SetHeights(0, 0, heightMap);
@@ -221,9 +265,9 @@ public class CustomTerrain : MonoBehaviour
 
         for (int i = 0; i < voronoiPeaksCount; i++)
         {
-            float peakHeight = Random.Range(voronoiMinHeight, voronoiMaxHeight);
-            int randomLocationX = Random.Range(0, terrainData.heightmapWidth);
-            int randomLocationZ = Random.Range(0, terrainData.heightmapHeight);
+            float peakHeight = UnityEngine.Random.Range(voronoiMinHeight, voronoiMaxHeight);
+            int randomLocationX = UnityEngine.Random.Range(0, terrainData.heightmapWidth);
+            int randomLocationZ = UnityEngine.Random.Range(0, terrainData.heightmapHeight);
             Vector3 peak = new Vector3(randomLocationX, peakHeight, randomLocationZ);
 
             if (heightMap[(int)peak.x, (int)peak.z] > peak.y)
@@ -302,7 +346,7 @@ public class CustomTerrain : MonoBehaviour
                     heightMap[midX, midY] = (heightMap[x, y] +
                                             heightMap[x, cornerY] +
                                             heightMap[cornerX, y] +
-                                            heightMap[cornerX, cornerY]) / 4f + Random.Range(heightMin, heightMax);
+                                            heightMap[cornerX, cornerY]) / 4f + UnityEngine.Random.Range(heightMin, heightMax);
                 }
             }
             for (int x = 0; x < width; x += squareSize)
@@ -329,19 +373,19 @@ public class CustomTerrain : MonoBehaviour
                     heightMap[midX, y] = (heightMap[x, y] +
                                             heightMap[midX, midY] +
                                             heightMap[cornerX, y] +
-                                            heightMap[midX, pmidYD]) / 4f + Random.Range(heightMin, heightMax);
+                                            heightMap[midX, pmidYD]) / 4f + UnityEngine.Random.Range(heightMin, heightMax);
                     heightMap[x, midY] = (heightMap[x, y] +
                                             heightMap[midX, midY] +
                                             heightMap[x, cornerY] +
-                                            heightMap[pmidXL, midY]) / 4f + Random.Range(heightMin, heightMax);
+                                            heightMap[pmidXL, midY]) / 4f + UnityEngine.Random.Range(heightMin, heightMax);
                     heightMap[cornerX, midY] = (heightMap[cornerX, cornerY] +
                                             heightMap[midX, midY] +
                                             heightMap[cornerX, y] +
-                                            heightMap[pmidXR, midY]) / 4f + Random.Range(heightMin, heightMax);
+                                            heightMap[pmidXR, midY]) / 4f + UnityEngine.Random.Range(heightMin, heightMax);
                     heightMap[midX, cornerY] = (heightMap[midX, pmidYU] +
                                            heightMap[cornerX, cornerY] +
                                            heightMap[midX, midY] +
-                                           heightMap[x, cornerY]) / 4f + Random.Range(heightMin, heightMax);
+                                           heightMap[x, cornerY]) / 4f + UnityEngine.Random.Range(heightMin, heightMax);
                 }
             }
 
