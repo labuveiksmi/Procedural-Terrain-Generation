@@ -34,6 +34,10 @@ public class CustomTerrain : MonoBehaviour
     public float mpMaxHeight = 1f;
     public float mpDampererPower = 1f;
 
+    public float blendingOffset = 0.01f;
+    public float blendingNoiseMultiplier = 0.2f;
+    public float blendingNoiseParams = 0.01f;
+
     public int smoothAmount = 1;
     public VoronoiFunction voronoiFunction;
 
@@ -128,8 +132,11 @@ public class CustomTerrain : MonoBehaviour
                 float[] splat = new float[terrainData.alphamapLayers];
                 for (int i = 0; i < terrainData.alphamapLayers; i++)
                 {
-                    float thisHeightStart = splatHeights[i].minHeight;
-                    float thisHeightStop = splatHeights[i].maxHeight;
+                    float noise = Mathf.PerlinNoise(x * blendingNoiseParams,
+                        y * blendingNoiseParams) * blendingNoiseMultiplier;
+                    float offset = blendingOffset + noise;
+                    float thisHeightStart = splatHeights[i].minHeight - offset;
+                    float thisHeightStop = splatHeights[i].maxHeight + offset;
 
                     if (heightMap[x, y] >= thisHeightStart && heightMap[x, y] <= thisHeightStop)
                     {

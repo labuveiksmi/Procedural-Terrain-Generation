@@ -40,6 +40,10 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty splatHeights;
     private GUITableState splatMapTable;
 
+    private SerializedProperty blendingNoiseMultiplier;
+    private SerializedProperty blendingOffset;
+    private SerializedProperty blendingNoiseParams;
+
     private bool showRandom = false;
     private bool showLoadHeights = false;
     private bool showMultiplePerlin = false;
@@ -100,13 +104,23 @@ public class CustomTerrainEditor : Editor
     {
         splatMapTable = new GUITableState("perlinParametrsTable");
         splatHeights = serializedObject.FindProperty("perlinParamentrs");
+        blendingOffset = serializedObject.FindProperty("blendingOffset");
+        blendingNoiseParams = serializedObject.FindProperty("blendingNoiseParams");
+        blendingNoiseMultiplier = serializedObject.FindProperty("blendingNoiseMultiplier");
     }
+
+    private Vector2 scrollPos;
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
         CustomTerrain terrain = (CustomTerrain)target;
+
+        //Rect r = EditorGUILayout.BeginVertical();
+        //scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Width(r.width), GUILayout.Height(r.height));
+        //EditorGUI.indentLevel++;
+
         EditorGUILayout.PropertyField(resetTerrain);
         RandomTerrainGUI(terrain);
         MultiplePerlinGUI(terrain);
@@ -125,6 +139,9 @@ public class CustomTerrainEditor : Editor
         {
             terrain.ResetTerrain();
         }
+
+        //EditorGUILayout.EndScrollView();
+        //EditorGUILayout.EndVertical();
         serializedObject.ApplyModifiedProperties();
     }
 
@@ -258,6 +275,11 @@ public class CustomTerrainEditor : Editor
         {
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             GUILayout.Label("Splat Maps", EditorStyles.boldLabel);
+
+            EditorGUILayout.Slider(blendingNoiseMultiplier, 0.1f, 1f, new GUIContent("Noise Multiplier"));
+            EditorGUILayout.Slider(blendingNoiseParams, 0.001f, 0.1f, new GUIContent("Noise Parameters"));
+            EditorGUILayout.Slider(blendingOffset, 0.001f, 0.1f, new GUIContent("Noise Offset"));
+
             splatMapTable = GUITableLayout.DrawTable(splatMapTable,
                 serializedObject.FindProperty(nameof(terrain.splatHeights)));
             GUILayout.Space(20);
@@ -273,7 +295,7 @@ public class CustomTerrainEditor : Editor
             }
             EditorGUILayout.EndHorizontal();
 
-            if (GUILayout.Button("Generate"))
+            if (GUILayout.Button("Apply"))
             {
                 terrain.SplatMaps();
             }

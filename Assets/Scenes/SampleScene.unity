@@ -230,6 +230,9 @@ MonoBehaviour:
   mpMinHeight: -0.49
   mpMaxHeight: 0.42
   mpDampererPower: 2
+  blendingOffset: 0.006
+  blendingNoiseMultiplier: 0.115
+  blendingNoiseParams: 0.0085
   smoothAmount: 5
   voronoiFunction: 3
   perlinParamentrs:
