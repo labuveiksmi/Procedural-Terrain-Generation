@@ -73,6 +73,8 @@ public class CustomTerrain : MonoBehaviour
         public Texture2D texture = null;
         public float minHeight = 0.1f;
         public float maxHeight = 0.2f;
+        public float minSlope = 0f;
+        public float maxSlope = 1.5f;
         public Vector2 tileOffset = new Vector2(0, 0);
         public Vector2 tileSize = new Vector2(50, 50);
         public bool remove = false;
@@ -107,6 +109,29 @@ public class CustomTerrain : MonoBehaviour
         splatHeights = keptSplatHeights;
     }
 
+    private float GetSteepness(float[,] heightMap, int x, int y, int width, int height)
+    {
+        float h = heightMap[x, y];
+        int nx = x + 1;
+        int ny = y + 1;
+
+        if (nx > width - 1)
+        {
+            nx = x - 1;
+        }
+        if (ny > height - 1)
+        {
+            ny = y - 1;
+        }
+
+        float dx = heightMap[nx, y] - h;
+        float dy = heightMap[x, ny] - h;
+        Vector2 gradient = new Vector2(dx, dy);
+
+        float steep = gradient.magnitude;
+        return steep;
+    }
+
     public void SplatMaps()
     {
         List<TerrainLayer> newTerrainLayers = new List<TerrainLayer>();
@@ -137,8 +162,12 @@ public class CustomTerrain : MonoBehaviour
                     float offset = blendingOffset + noise;
                     float thisHeightStart = splatHeights[i].minHeight - offset;
                     float thisHeightStop = splatHeights[i].maxHeight + offset;
-
-                    if (heightMap[x, y] >= thisHeightStart && heightMap[x, y] <= thisHeightStop)
+                    //float steepness = GetSteepness(heightMap, x, y,
+                    //    terrainData.heightmapWidth, terrainData.heightmapHeight);
+                    float steepness = terrainData.GetSteepness((y / (float)terrainData.alphamapHeight),
+                                                             (x / (float)terrainData.alphamapWidth));
+                    if (heightMap[x, y] >= thisHeightStart && heightMap[x, y] <= thisHeightStop &&
+                        steepness >= splatHeights[i].minSlope && steepness <= splatHeights[i].maxSlope)
                     {
                         splat[i] = 1;
                     }
