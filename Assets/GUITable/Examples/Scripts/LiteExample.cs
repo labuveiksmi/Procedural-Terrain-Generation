@@ -1,23 +1,21 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LiteExample : MonoBehaviour 
+public class LiteExample : MonoBehaviour
 {
+    public List<SimpleObject> simpleObjects;
 
-	[System.Serializable]
-	public class SimpleObject
-	{
-		public string stringProperty;
-		public float floatProperty;
-		public GameObject objectProperty;
-	}
+    private void OnGUI()
+    {
+        GUILayout.Label("Select the LiteExample scene object to visualize the table in the inspector");
+    }
 
-	public List<SimpleObject> simpleObjects;
-
-	void OnGUI ()
-	{
-		GUILayout.Label ("Select the LiteExample scene object to visualize the table in the inspector");
-	}
-
+    [Serializable]
+    public class SimpleObject
+    {
+        public float floatProperty;
+        public GameObject objectProperty;
+        public string stringProperty;
+    }
 }

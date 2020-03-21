@@ -1,42 +1,40 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿using System.Collections.Generic;
 using EditorGUITable;
+using UnityEditor;
+using UnityEngine;
 
-public class CustomColumnsWindow : EditorWindow 
+public class CustomColumnsWindow : EditorWindow
 {
+    private SerializedObject serializedObject;
 
-	SerializedObject serializedObject;
-
-	GUITableState tableState;
+    private GUITableState tableState;
 
 
-	void OnEnable ()
-	{
-		tableState = new GUITableState("tableState3");
-	}
+    private void OnEnable()
+    {
+        tableState = new GUITableState("tableState3");
+    }
 
-	void OnGUI () 
-	{
+    private void OnGUI()
+    {
+        GUILayout.Label("Customize the columns (right-click to hide optional columns)", EditorStyles.boldLabel);
 
-		GUILayout.Label ("Customize the columns (right-click to hide optional columns)", EditorStyles.boldLabel);
+        DrawCustomColumns();
+    }
 
-		DrawCustomColumns ();
+    private void DrawCustomColumns()
+    {
+        var serializedObject = new SerializedObject(SimpleExample.Instance);
+        var propertyColumns = new List<SelectorColumn>
+        {
+            new SelectFromPropertyNameColumn("stringProperty", "String", TableColumn.Width(60f)),
+            new SelectFromPropertyNameColumn("floatProperty", "Float", TableColumn.Width(50f),
+                TableColumn.Optional(true)),
+            new SelectFromPropertyNameColumn("objectProperty", "Object", TableColumn.Width(50f),
+                TableColumn.EnabledTitle(false), TableColumn.Optional(true))
+        };
 
-	}
-
-	void DrawCustomColumns ()
-	{
-		SerializedObject serializedObject = new SerializedObject(SimpleExample.Instance);
-		List<SelectorColumn> propertyColumns = new List<SelectorColumn>()
-		{
-			new SelectFromPropertyNameColumn("stringProperty", "String", TableColumn.Width(60f)),
-			new SelectFromPropertyNameColumn("floatProperty", "Float", TableColumn.Width(50f), TableColumn.Optional(true)),
-			new SelectFromPropertyNameColumn("objectProperty", "Object", TableColumn.Width(50f), TableColumn.EnabledTitle(false), TableColumn.Optional(true)),
-		};
-
-		tableState = GUITableLayout.DrawTable (tableState, serializedObject.FindProperty("simpleObjects"), propertyColumns);
-	}
-
+        tableState =
+            GUITableLayout.DrawTable(tableState, serializedObject.FindProperty("simpleObjects"), propertyColumns);
+    }
 }

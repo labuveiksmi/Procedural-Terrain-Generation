@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public static class Utils
 {
@@ -10,14 +8,15 @@ public static class Utils
         float frequency = 1;
         float amplitude = 1;
         float maxValue = 0;
-        for (int i = 0; i < octavian; i++)
+        for (var i = 0; i < octavian; i++)
         {
             total += Mathf.PerlinNoise(x * frequency,
-                                       y * frequency) * amplitude;
+                y * frequency) * amplitude;
             maxValue += amplitude;
             amplitude *= persistance;
             frequency *= 2;
         }
+
         return total / maxValue;
     }
 }

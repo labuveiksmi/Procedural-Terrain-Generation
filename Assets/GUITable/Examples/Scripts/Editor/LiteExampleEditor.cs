@@ -1,35 +1,29 @@
-﻿using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using EditorGUITable;
 using UnityEditor;
-using EditorGUITable;
+using UnityEngine;
 
 [CustomEditor(typeof(LiteExample))]
-public class LiteExampleEditor : Editor 
+public class LiteExampleEditor : Editor
 {
+    private GUITableState tableState;
 
-	GUITableState tableState;
+    private void OnEnable()
+    {
+        tableState = new GUITableState("tableState_Lite");
+    }
 
-	void OnEnable ()
-	{
-		tableState = new GUITableState("tableState_Lite");
-	}
+    public override void OnInspectorGUI()
+    {
+        GUILayout.Label("Default display", EditorStyles.boldLabel);
 
-	public override void OnInspectorGUI ()
-	{
-		GUILayout.Label ("Default display", EditorStyles.boldLabel);
+        base.OnInspectorGUI();
 
-		base.OnInspectorGUI();
+        GUILayout.Space(20f);
 
-		GUILayout.Space (20f);
+        GUILayout.Label("Table display", EditorStyles.boldLabel);
 
-		GUILayout.Label ("Table display", EditorStyles.boldLabel);
+        tableState = GUITableLayout.DrawTable(tableState, serializedObject.FindProperty("simpleObjects"));
 
-		tableState = GUITableLayout.DrawTable (tableState, serializedObject.FindProperty ("simpleObjects"));
-
-		GUILayout.Space (20f);
-
-	}
-
+        GUILayout.Space(20f);
+    }
 }

@@ -1,70 +1,61 @@
 ﻿using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
 using EditorGUITable;
+using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(AdvancedExample))]
-public class AdvancedExampleEditor : Editor 
+public class AdvancedExampleEditor : Editor
 {
+    private GUITableState tableState;
 
-	GUITableState tableState;
+    private void OnEnable()
+    {
+        tableState = new GUITableState("tableState_Advanced");
+    }
 
-	void OnEnable ()
-	{
-		tableState = new GUITableState("tableState_Advanced");
-	}
+    public override void OnInspectorGUI()
+    {
+        GUILayout.Label("Default display", EditorStyles.boldLabel);
 
-	public override void OnInspectorGUI ()
-	{
-		GUILayout.Label ("Default display", EditorStyles.boldLabel);
-
-		base.OnInspectorGUI();
+        base.OnInspectorGUI();
 
 //		EditorGUILayout.PropertyField (serializedObject.FindProperty("enemies"), true);
 //		serializedObject.ApplyModifiedProperties();
 
-		GUILayout.Space (20f);
+        GUILayout.Space(20f);
 
-		GUILayout.Label ("Table display", EditorStyles.boldLabel);
+        GUILayout.Label("Table display", EditorStyles.boldLabel);
 
-		if (GUILayout.Button("Show Window"))
-		{
-			AdvancedExampleWindow.Init();
-		}
-	}
-
+        if (GUILayout.Button("Show Window")) AdvancedExampleWindow.Init();
+    }
 }
 
 public class SpawnersCell : TableCell
 {
+    private readonly SerializedObject so;
 
-	SerializedProperty sp;
-	SerializedObject so;
+    private readonly SerializedProperty sp;
 
-	public override void DrawCellLayout (float width, float height)
-	{
-		sp.intValue = EditorGUILayout.MaskField (sp.intValue, AdvancedExample.Instance.spawners.Select(s => s.name).ToArray(), GUILayout.Width(width), GUILayout.Height(height));
-		so.ApplyModifiedProperties();
-	}
+    public SpawnersCell(SerializedObject so, string propertyName)
+    {
+        sp = so.FindProperty(propertyName);
+        this.so = so;
+    }
 
-	public override void DrawCell (Rect rect)
-	{
-		sp.intValue = EditorGUI.MaskField (rect, sp.intValue, AdvancedExample.Instance.spawners.Select(s => s.name).ToArray());
-		so.ApplyModifiedProperties();
-	}
+    public override string comparingValue => string.Empty;
 
-	public override string comparingValue {
-		get {
-			return string.Empty;
-		}
-	}
+    public override void DrawCellLayout(float width, float height)
+    {
+        sp.intValue = EditorGUILayout.MaskField(sp.intValue,
+            AdvancedExample.Instance.spawners.Select(s => s.name).ToArray(), GUILayout.Width(width),
+            GUILayout.Height(height));
+        so.ApplyModifiedProperties();
+    }
 
-	public SpawnersCell (SerializedObject so, string propertyName)
-	{
-		sp = so.FindProperty(propertyName);
-		this.so = so;
-	}
-
+    public override void DrawCell(Rect rect)
+    {
+        sp.intValue = EditorGUI.MaskField(rect, sp.intValue,
+            AdvancedExample.Instance.spawners.Select(s => s.name).ToArray());
+        so.ApplyModifiedProperties();
+    }
 }

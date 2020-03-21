@@ -1,26 +1,26 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 
-public enum EnemyType 
+public enum EnemyType
 {
-	Normal,
-	Flock,
-	Boss
+    Normal,
+    Flock,
+    Boss
 }
 
-[System.Serializable]
+[Serializable]
 public class Enemy : MonoBehaviour
 {
-	public EnemyType type;
-	public int health;
-	public float speed;
-	public Color color;
-	public bool canSwim;
-	public int spawnersMask;
+    public bool canSwim;
+    public Color color;
+    public int health;
+    public int spawnersMask;
+    public float speed;
+    public EnemyType type;
 
-	public void Instantiate ()
-	{
-		UnityEditor.PrefabUtility.InstantiatePrefab(this);
-	}
+    public void Instantiate()
+    {
+        PrefabUtility.InstantiatePrefab(this);
+    }
 }

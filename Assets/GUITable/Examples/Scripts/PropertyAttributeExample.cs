@@ -1,31 +1,27 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 using EditorGUITable;
+using UnityEngine;
 
+public class PropertyAttributeExample : MonoBehaviour
+{
+    public List<SimpleObject> simpleObjectsDefaultDisplay;
 
-public class PropertyAttributeExample : MonoBehaviour {
-	
-	[System.Serializable]
-	public class SimpleObject
-	{
-		public string stringProperty;
-		public float floatProperty;
-		public GameObject objectProperty;
-		public Vector2 v2Property;
-	}
+    [ReorderableTable] public List<SimpleObject> simpleObjectsUsingReorderableTableAttribute;
 
-	public List<SimpleObject> simpleObjectsDefaultDisplay;
+    [Table] public List<SimpleObject> simpleObjectsUsingTableAttribute;
 
-	[Table]
-	public List<SimpleObject> simpleObjectsUsingTableAttribute;
+    private void OnGUI()
+    {
+        GUILayout.Label("Select the PropertyAttribute scene object to visualize the table in the inspector");
+    }
 
-	[ReorderableTable]
-	public List<SimpleObject> simpleObjectsUsingReorderableTableAttribute;
-
-	void OnGUI ()
-	{
-		GUILayout.Label ("Select the PropertyAttribute scene object to visualize the table in the inspector");
-	}
-
+    [Serializable]
+    public class SimpleObject
+    {
+        public float floatProperty;
+        public GameObject objectProperty;
+        public string stringProperty;
+        public Vector2 v2Property;
+    }
 }

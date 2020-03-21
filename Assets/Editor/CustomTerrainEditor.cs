@@ -1,55 +1,54 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using EditorGUITable;
 using UnityEditor;
 using UnityEngine;
-using EditorGUITable;
 
 [CustomEditor(typeof(CustomTerrain))]
 [CanEditMultipleObjects]
 public class CustomTerrainEditor : Editor
 {
-    private SerializedProperty randomHeightRange;
-    private SerializedProperty heighMapScale;
+    private SerializedProperty blendingNoiseMultiplier;
+    private SerializedProperty blendingNoiseParams;
+    private SerializedProperty blendingOffset;
     private SerializedProperty heighMapImage;
-    private SerializedProperty perlinXScale;
-    private SerializedProperty perlinYScale;
-    private SerializedProperty perlinXOffset;
-    private SerializedProperty perlinYOffset;
-    private SerializedProperty pelinOctaves;
-    private SerializedProperty perlinPersistance;
-    private SerializedProperty perlinHeightScale;
-    private SerializedProperty resetTerrain;
-
-    private GUITableState perlinParametrsTable;
-    private SerializedProperty perlinParametrs;
-
-    private SerializedProperty voronoiFallOff;
-    private SerializedProperty voronoiDropOff;
-    private SerializedProperty voronoiMaxHeight;
-    private SerializedProperty voronoiMinHeight;
-    private SerializedProperty voronoiPeaksCount;
-    private SerializedProperty voronoiFunction;
+    private SerializedProperty heighMapScale;
+    private bool midpointDisplacement;
+    private SerializedProperty mpDampererPower;
+    private SerializedProperty mpMaxHeight;
+    private SerializedProperty mpMinHeight;
 
     private SerializedProperty mpRoughtness;
-    private SerializedProperty mpMinHeight;
-    private SerializedProperty mpMaxHeight;
-    private SerializedProperty mpDampererPower;
+    private SerializedProperty pelinOctaves;
+    private SerializedProperty perlinHeightScale;
+    private SerializedProperty perlinParametrs;
+
+    private GUITableState perlinParametrsTable;
+    private SerializedProperty perlinPersistance;
+    private SerializedProperty perlinXOffset;
+    private SerializedProperty perlinXScale;
+    private SerializedProperty perlinYOffset;
+    private SerializedProperty perlinYScale;
+    private SerializedProperty randomHeightRange;
+    private SerializedProperty resetTerrain;
+
+    private Vector2 scrollPos;
+    private bool showLoadHeights;
+    private bool showMultiplePerlin;
+
+    private bool showRandom;
+    private bool showSplatMaps;
+    private bool showVoronoi;
 
     private SerializedProperty smoothAmount;
 
     private SerializedProperty splatHeights;
     private GUITableState splatMapTable;
+    private SerializedProperty voronoiDropOff;
 
-    private SerializedProperty blendingNoiseMultiplier;
-    private SerializedProperty blendingOffset;
-    private SerializedProperty blendingNoiseParams;
-
-    private bool showRandom = false;
-    private bool showLoadHeights = false;
-    private bool showMultiplePerlin = false;
-    private bool showVoronoi = false;
-    private bool midpointDisplacement = false;
-    private bool showSplatMaps = false;
+    private SerializedProperty voronoiFallOff;
+    private SerializedProperty voronoiFunction;
+    private SerializedProperty voronoiMaxHeight;
+    private SerializedProperty voronoiMinHeight;
+    private SerializedProperty voronoiPeaksCount;
 
     private void OnEnable()
     {
@@ -109,13 +108,11 @@ public class CustomTerrainEditor : Editor
         blendingNoiseMultiplier = serializedObject.FindProperty("blendingNoiseMultiplier");
     }
 
-    private Vector2 scrollPos;
-
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
-        CustomTerrain terrain = (CustomTerrain)target;
+        var terrain = (CustomTerrain) target;
 
         //Rect r = EditorGUILayout.BeginVertical();
         //scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Width(r.width), GUILayout.Height(r.height));
@@ -130,15 +127,9 @@ public class CustomTerrainEditor : Editor
         SplatMapsGUI(terrain);
 
         EditorGUILayout.IntSlider(smoothAmount, 1, 20, new GUIContent("Times"));
-        if (GUILayout.Button("Smooth"))
-        {
-            terrain.Smooth();
-        }
+        if (GUILayout.Button("Smooth")) terrain.Smooth();
 
-        if (GUILayout.Button("Reset"))
-        {
-            terrain.ResetTerrain();
-        }
+        if (GUILayout.Button("Reset")) terrain.ResetTerrain();
 
         //EditorGUILayout.EndScrollView();
         //EditorGUILayout.EndVertical();
@@ -156,10 +147,7 @@ public class CustomTerrainEditor : Editor
             EditorGUILayout.PropertyField(mpMaxHeight, new GUIContent("MP Max Heigt"));
             EditorGUILayout.PropertyField(mpDampererPower, new GUIContent("MP Damperer Power"));
 
-            if (GUILayout.Button("Midpoint Displacement"))
-            {
-                terrain.MidpointDisplacement();
-            }
+            if (GUILayout.Button("Midpoint Displacement")) terrain.MidpointDisplacement();
         }
     }
 
@@ -173,10 +161,7 @@ public class CustomTerrainEditor : Editor
             EditorGUILayout.PropertyField(heighMapImage);
             EditorGUILayout.PropertyField(heighMapScale);
 
-            if (GUILayout.Button("Load Texture"))
-            {
-                terrain.LoadTexture();
-            }
+            if (GUILayout.Button("Load Texture")) terrain.LoadTexture();
         }
     }
 
@@ -192,24 +177,12 @@ public class CustomTerrainEditor : Editor
             GUILayout.Space(20);
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("+"))
-            {
-                terrain.AddNewPerlin();
-            }
-            if (GUILayout.Button("-"))
-            {
-                terrain.RemovePerlin();
-            }
+            if (GUILayout.Button("+")) terrain.AddNewPerlin();
+            if (GUILayout.Button("-")) terrain.RemovePerlin();
             EditorGUILayout.EndHorizontal();
 
-            if (GUILayout.Button("Multiple Perlin Terrain"))
-            {
-                terrain.MultiplePerlinTerrain();
-            }
-            if (GUILayout.Button("Generate"))
-            {
-                terrain.MultiplePerlinTerrain();
-            }
+            if (GUILayout.Button("Multiple Perlin Terrain")) terrain.MultiplePerlinTerrain();
+            if (GUILayout.Button("Generate")) terrain.MultiplePerlinTerrain();
         }
     }
 
@@ -223,10 +196,7 @@ public class CustomTerrainEditor : Editor
             GUILayout.Label("Set heights between values", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(randomHeightRange);
 
-            if (GUILayout.Button("Random Heights"))
-            {
-                terrain.RandomTerrain();
-            }
+            if (GUILayout.Button("Random Heights")) terrain.RandomTerrain();
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             GUILayout.Label("Generate landshaft using Perlin Noise", EditorStyles.boldLabel);
             EditorGUILayout.Slider(perlinXScale, 0, 1, new GUIContent("XScale"));
@@ -237,10 +207,7 @@ public class CustomTerrainEditor : Editor
             EditorGUILayout.Slider(perlinPersistance, 0.1f, 10, new GUIContent("perlinPersistance"));
             EditorGUILayout.Slider(perlinHeightScale, 0, 1, new GUIContent("perlinHeightScale"));
 
-            if (GUILayout.Button("Perlin Noise"))
-            {
-                terrain.Perlin();
-            }
+            if (GUILayout.Button("Perlin Noise")) terrain.Perlin();
         }
     }
 
@@ -261,10 +228,7 @@ public class CustomTerrainEditor : Editor
             EditorGUILayout.Slider(voronoiMaxHeight, 0f, 1f, new GUIContent("MaxHeight"));
             EditorGUILayout.Slider(voronoiMinHeight, 0f, 1f, new GUIContent("MinHeight"));
 
-            if (GUILayout.Button("Voronoi"))
-            {
-                terrain.VoronoiTessellation();
-            }
+            if (GUILayout.Button("Voronoi")) terrain.VoronoiTessellation();
         }
     }
 
@@ -285,20 +249,11 @@ public class CustomTerrainEditor : Editor
             GUILayout.Space(20);
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("+"))
-            {
-                terrain.AddNewSplatHeight();
-            }
-            if (GUILayout.Button("-"))
-            {
-                terrain.RemoveSplatHeight();
-            }
+            if (GUILayout.Button("+")) terrain.AddNewSplatHeight();
+            if (GUILayout.Button("-")) terrain.RemoveSplatHeight();
             EditorGUILayout.EndHorizontal();
 
-            if (GUILayout.Button("Apply"))
-            {
-                terrain.SplatMaps();
-            }
+            if (GUILayout.Button("Apply")) terrain.SplatMaps();
         }
     }
 }

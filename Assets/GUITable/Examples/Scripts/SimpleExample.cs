@@ -1,40 +1,40 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+public class SimpleExample : MonoBehaviour
+{
+    private static SimpleExample instance;
 
-public class SimpleExample : MonoBehaviour {
+    public List<SimpleObject> simpleObjects;
 
-	private static SimpleExample instance = null;
-	public static SimpleExample Instance
-	{
-		get
-		{
-			if (instance == null)
-				instance = FindObjectOfType<SimpleExample>();
-			return instance;
-		}
-	}
+    public static SimpleExample Instance
+    {
+        get
+        {
+            if (instance == null)
+                instance = FindObjectOfType<SimpleExample>();
+            return instance;
+        }
+    }
 
-	[System.Serializable]
-	public class SimpleObject
-	{
-		public string stringProperty;
-		public float floatProperty;
-		public GameObject objectProperty;
-		public void Reset ()
-		{
-			stringProperty = "";
-			floatProperty = 0f;
-			objectProperty = null;
-		}
-	}
+    private void OnGUI()
+    {
+        GUILayout.Label("Select the SimpleExample scene object to visualize the table in the inspector");
+    }
 
-	public List<SimpleObject> simpleObjects;
+    [Serializable]
+    public class SimpleObject
+    {
+        public float floatProperty;
+        public GameObject objectProperty;
+        public string stringProperty;
 
-	void OnGUI ()
-	{
-		GUILayout.Label ("Select the SimpleExample scene object to visualize the table in the inspector");
-	}
-
+        public void Reset()
+        {
+            stringProperty = "";
+            floatProperty = 0f;
+            objectProperty = null;
+        }
+    }
 }
