@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 [ExecuteInEditMode]
@@ -15,6 +16,9 @@ public class TextureCreatorWindow : EditorWindow
     private float perlinXScale;
     private float perlinYScale;
 
+    private float brightness = 0.5f;
+    private float contrast = 0.5f;
+    
     private Texture2D pTexture2D;
     private bool seamlessToggle;
 
@@ -43,6 +47,8 @@ public class TextureCreatorWindow : EditorWindow
         perlinHeightScale = EditorGUILayout.Slider("Height Scale", perlinHeightScale, 0, 1);
         perlinOffsetX = EditorGUILayout.IntSlider("Offset X", perlinOffsetX, 0, 10000);
         perlinOffsetY = EditorGUILayout.IntSlider("Offset Y", perlinOffsetY, 0, 10000);
+        brightness = EditorGUILayout.Slider("Brightness", brightness, 0, 2);
+        contrast = EditorGUILayout.Slider("Contrast", contrast, 0, 2);
         alphaToggle = EditorGUILayout.Toggle("Alpha?", alphaToggle);
         mapToggle = EditorGUILayout.Toggle("Map?", mapToggle);
         seamlessToggle = EditorGUILayout.Toggle("Seamless", seamlessToggle);
@@ -50,6 +56,8 @@ public class TextureCreatorWindow : EditorWindow
         GUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
 
+        float minColor = 1;
+        float maxColor = 0;
         if (GUILayout.Button("Generate", GUILayout.Width(wSize)))
         {
             int size = 513;
@@ -101,13 +109,38 @@ public class TextureCreatorWindow : EditorWindow
                             perlinPersistance) * perlinHeightScale;
                     }
 
-                    
-                    float colValue = pValue;
+
+                    float colValue = contrast*(pValue - 0.5f ) + 0.5f * brightness;
+                    if (minColor > colValue)
+                    {
+                        minColor = colValue;
+                    }
+
+                    if (maxColor < colValue)
+                    {
+                        maxColor = colValue;
+                    }
                     pixColor = new Color(colValue, colValue, colValue, alphaToggle ? colValue : 1);
                     pTexture2D.SetPixel(x, y, pixColor);
                 }
             }
 
+            if (mapToggle)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    for (int x = 0; x < size; x++)
+                    {
+                        pixColor = pTexture2D.GetPixel(x, y);
+                        float colValue = pixColor.r;
+                        colValue = Utils.Map(colValue, minColor, maxColor, 0, 1);
+                        pixColor.r = colValue;
+                        pixColor.g = colValue;
+                        pixColor.b = colValue;
+                        pTexture2D.SetPixel(x,y,pixColor);
+                    }
+                }
+            }
             pTexture2D.Apply(false, false);
         }
 
@@ -124,6 +157,9 @@ public class TextureCreatorWindow : EditorWindow
         GUILayout.FlexibleSpace();
         if (GUILayout.Button("Save", GUILayout.Width(wSize)))
         {
+            byte[] bytes = pTexture2D.EncodeToPNG();
+            Directory.CreateDirectory(Application.dataPath + "/SavedTextures");
+            File.WriteAllBytes(Application.dataPath + "/SavedTextures/" + filename + ".png", bytes);
         }
     }
 }
