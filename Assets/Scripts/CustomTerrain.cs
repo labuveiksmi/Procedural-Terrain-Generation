@@ -14,7 +14,14 @@ public class CustomTerrain : MonoBehaviour
         Combined,
         SinPow
     }
+    public enum TagType
+    {
+        Tag = 0,
+        Layer = 1
+    }
 
+    [SerializeField] private int terrainLayer = -1;
+    
     public float blendingNoiseMultiplier = 0.2f;
     public float blendingNoiseParams = 0.01f;
 
@@ -421,8 +428,7 @@ public class CustomTerrain : MonoBehaviour
                 }
             }
         }
-
-        Debug.Log(allVegetation.Count);
+        
         terrainData.treeInstances = allVegetation.ToArray();
     }
 
@@ -484,42 +490,59 @@ public class CustomTerrain : MonoBehaviour
         terrainData = terrain.terrainData;
     }
 
+
     private void Awake()
     {
         var tagManager = new SerializedObject(
             AssetDatabase.LoadMainAssetAtPath("ProjectSettings/TagManager.asset"));
         var tagsProperty = tagManager.FindProperty("tags");
+        
+        AddTag(tagsProperty, "Terrain",TagType.Tag);
+        AddTag(tagsProperty, "Cloud",TagType.Tag);
+        AddTag(tagsProperty, "Shore",TagType.Tag);
 
-        Debug.Log(tagManager.ToString());
-        AddTag(tagsProperty, "Terrain");
-        AddTag(tagsProperty, "Cloud");
-        AddTag(tagsProperty, "Shore");
+        var layerProperties = tagManager.FindProperty("layers");
 
+        terrainLayer = AddTag(layerProperties, "Terrain", TagType.Layer);
         tagManager.ApplyModifiedProperties();
 
         gameObject.tag = "Terrain";
+        gameObject.layer = terrainLayer;
     }
 
-    private void AddTag(SerializedProperty tagProperty, string newTag)
+    private int AddTag(SerializedProperty tagProperty, string newTag,TagType tagType)
     {
-        var found = false;
+  
 
         for (var i = 0; i < tagProperty.arraySize; i++)
         {
             var property = tagProperty.GetArrayElementAtIndex(i);
             if (property.stringValue.Equals(newTag))
             {
-                found = true;
-                break;
+          
+                return i;
             }
         }
 
-        if (!found)
+        if (tagType == TagType.Tag)
         {
             tagProperty.InsertArrayElementAtIndex(0);
             var property = tagProperty.GetArrayElementAtIndex(0);
             property.stringValue = newTag;
+        }else
+        {
+            for (int j = 8; j < tagProperty.arraySize; j++)
+            {
+                var newLayer = tagProperty.GetArrayElementAtIndex(j);
+                if (newLayer.stringValue == "")
+                {
+                    newLayer.stringValue = newTag;
+                    return j;
+                }
+            }
         }
+
+        return -1;
     }
 
     //Vegetation
