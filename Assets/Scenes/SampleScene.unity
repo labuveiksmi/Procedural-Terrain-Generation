@@ -213,6 +213,7 @@ MonoBehaviour:
   blendingOffset: 0.006
   heighMapImage: {fileID: 2800000, guid: 520d3eb3eafa44b46845c48ce1ee5ff3, type: 3}
   heighMapScale: {x: 1, y: 0.2, z: 1}
+  maxTrees: 10000
   mpDampererPower: 2
   mpMaxHeight: 0.42
   mpMinHeight: -0.49
@@ -261,8 +262,8 @@ MonoBehaviour:
     texture: {fileID: 2800000, guid: c54bf2390a18e47c19ab793626fbfb56, type: 3}
     tileOffset: {x: 0, y: 0}
     tileSize: {x: 50, y: 50}
-  - maxHeight: 0.2
-    maxSlope: 1.5
+  - maxHeight: 1
+    maxSlope: 90
     minHeight: 0.15
     minSlope: 0
     remove: 0
@@ -271,27 +272,27 @@ MonoBehaviour:
     tileSize: {x: 50, y: 50}
   terrain: {fileID: 448788373}
   terrainData: {fileID: 15600000, guid: 7df89251c5f11ad45b2ad9b89d8f2510, type: 2}
+  treeSpacing: 17
+  vegetations:
+  - maxHeight: 0.2
+    maxSlope: 90
+    minHeight: 0.1
+    minSlope: 0
+    prefab: {fileID: 100000, guid: 21e1dddb280f946a3b1555bb9d691e43, type: 3}
+    remove: 1
+  - maxHeight: 0.2
+    maxSlope: 90
+    minHeight: 0.1
+    minSlope: 0
+    prefab: {fileID: -927199367670048503, guid: 7b9282fc41cfa4caf9b150bd407f856e,
+      type: 3}
+    remove: 0
   voronoiDropOff: 10
   voronoiFallOff: 4.3
   voronoiFunction: 3
   voronoiMaxHeight: 0.74
   voronoiMinHeight: 0.39
   voronoiPeaksCount: 10
-  vegetations:
-  - prefab: {fileID: 100000, guid: 21e1dddb280f946a3b1555bb9d691e43, type: 3}
-    minHeight: 0.1
-    maxHeight: 0.2
-    minSlope: 0
-    maxSlope: 90
-    remove: 0
-  - prefab: {fileID: 100000, guid: 02e48269f8d554fbca75435761452392, type: 3}
-    minHeight: 0.1
-    maxHeight: 0.2
-    minSlope: 0
-    maxSlope: 90
-    remove: 0
-  maxTrees: 5000
-  treeSpacing: 5
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0

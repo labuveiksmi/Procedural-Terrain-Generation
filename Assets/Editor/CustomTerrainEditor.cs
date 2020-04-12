@@ -13,6 +13,7 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty heighMapScale;
 
     private Texture2D heightmapTexture;
+    private SerializedProperty maxTrees;
     private bool midpointDisplacement;
     private SerializedProperty mpDampererPower;
     private SerializedProperty mpMaxHeight;
@@ -39,11 +40,17 @@ public class CustomTerrainEditor : Editor
 
     private bool showRandom;
     private bool showSplatMaps;
+    private bool showVegetation;
     private bool showVoronoi;
     private SerializedProperty smoothAmount;
 
     private SerializedProperty splatHeights;
     private GUITableState splatMapTable;
+    private SerializedProperty treeSpacing;
+
+
+    //Vegetation
+    private GUITableState vegMapTable;
     private SerializedProperty voronoiDropOff;
 
     private SerializedProperty voronoiFallOff;
@@ -52,13 +59,6 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty voronoiMinHeight;
     private SerializedProperty voronoiPeaksCount;
 
-  
-    //Vegetation
-    private GUITableState vegMapTable;
-    private SerializedProperty maxTrees;
-    private SerializedProperty treeSpacing;
-    private bool showVegetation;
-    
     private void OnEnable()
     {
         RandomTerrainProperties();
@@ -67,7 +67,7 @@ public class CustomTerrainEditor : Editor
         MidpointDisplacementProperties();
         SplatMapProperties();
         VegetationProperties();
-        heightmapTexture = new Texture2D(513,513, TextureFormat.ARGB32,false);
+        heightmapTexture = new Texture2D(513, 513, TextureFormat.ARGB32, false);
         smoothAmount = serializedObject.FindProperty("smoothAmount");
     }
 
@@ -125,6 +125,7 @@ public class CustomTerrainEditor : Editor
         maxTrees = serializedObject.FindProperty("maxTrees");
         treeSpacing = serializedObject.FindProperty("treeSpacing");
     }
+
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -178,7 +179,8 @@ public class CustomTerrainEditor : Editor
                 {
                     for (int x = 0; x < terrain.terrainData.heightmapWidth; x++)
                     {
-                        heightmapTexture.SetPixel(x, y, new Color(heightMap[x, y], heightMap[x, y], heightMap[x, y], 1));
+                        heightmapTexture.SetPixel(x, y,
+                            new Color(heightMap[x, y], heightMap[x, y], heightMap[x, y], 1));
                     }
                 }
 
@@ -310,7 +312,7 @@ public class CustomTerrainEditor : Editor
             if (GUILayout.Button("Apply")) terrain.SplatMaps();
         }
     }
-    
+
     private void VegetationGUI(CustomTerrain terrain)
     {
         showVegetation = EditorGUILayout.Foldout(showVegetation, "Vegetation");
@@ -321,7 +323,7 @@ public class CustomTerrainEditor : Editor
 
             EditorGUILayout.IntSlider(maxTrees, 0, 10000, new GUIContent("Max Trees"));
             EditorGUILayout.IntSlider(treeSpacing, 2, 20, new GUIContent("Tree Spacing"));
-            
+
 
             vegMapTable = GUITableLayout.DrawTable(vegMapTable,
                 serializedObject.FindProperty(nameof(terrain.vegetations)));
@@ -337,12 +339,15 @@ public class CustomTerrainEditor : Editor
             {
                 terrain.RemoveVegetation();
             }
+
             EditorGUILayout.EndHorizontal();
 
             if (GUILayout.Button("Apply"))
             {
                 terrain.PlanVegetation();
-            };
+            }
+
+            ;
         }
     }
 }

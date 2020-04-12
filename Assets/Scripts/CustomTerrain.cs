@@ -21,6 +21,8 @@ public class CustomTerrain : MonoBehaviour
     public float blendingOffset = 0.01f;
     public Texture2D heighMapImage;
     public Vector3 heighMapScale = Vector3.one;
+
+    public int maxTrees = 5000;
     public float mpDampererPower = 1f;
     public float mpMaxHeight = 1f;
     public float mpMinHeight;
@@ -53,6 +55,13 @@ public class CustomTerrain : MonoBehaviour
 
     public Terrain terrain;
     public TerrainData terrainData;
+    public int treeSpacing = 5;
+
+    public List<Vegetation> vegetations = new List<Vegetation>
+    {
+        new Vegetation()
+    };
+
     public float voronoiDropOff = 0.6f;
 
     public float voronoiFallOff = 0.2f;
@@ -61,25 +70,6 @@ public class CustomTerrain : MonoBehaviour
     public float voronoiMinHeight;
     public int voronoiPeaksCount = 1;
 
-    //Vegetation
-    [Serializable]
-    public class Vegetation
-    {
-        public GameObject prefab;
-        public float minHeight = 0.1f;
-        public float maxHeight = 0.2f;
-        public float minSlope = 0;
-        public float maxSlope = 90;
-        public bool remove = false;
-    }
-
-    public List<Vegetation> vegetations = new List<Vegetation>()
-    {
-        new Vegetation()
-    };
-
-    public int maxTrees = 5000;
-    public int treeSpacing = 5;
     public void AddNewSplatHeight()
     {
         splatHeights.Add(new SplatHeights());
@@ -396,6 +386,44 @@ public class CustomTerrain : MonoBehaviour
         }
 
         terrainData.treePrototypes = newTreePrototypes;
+
+        List<TreeInstance> allVegetation = new List<TreeInstance>();
+        for (int z = 0; z < terrainData.size.z; z += treeSpacing)
+        {
+            for (int x = 0; x < terrainData.size.x; x += treeSpacing)
+            {
+                for (int treeProt = 0; treeProt < terrainData.treePrototypes.Length; treeProt++)
+                {
+                    if (allVegetation.Count >= maxTrees)
+                    {
+                        break;
+                    }
+
+                    float thisHeight = terrainData.GetHeight(x, z) / terrainData.size.y;
+                    float startHeight = vegetations[treeProt].minHeight;
+                    float endHeight = vegetations[treeProt].maxHeight;
+
+                    if (thisHeight < startHeight || thisHeight > endHeight)
+                    {
+                        continue;
+                    }
+                    TreeInstance instance = new TreeInstance();
+                    instance.position = new Vector3((x+ Random.Range(-5f, 5f)) / terrainData.size.x, thisHeight, (z+ Random.Range(-5f, 5f)) / terrainData.size.z);
+                    instance.rotation = Random.Range(0, 360);
+                    instance.prototypeIndex = treeProt;
+                    instance.color = Color.white;
+                    instance.lightmapColor = Color.white;
+                    var scale = 0.95f;
+                    instance.heightScale = scale;
+                    instance.widthScale = scale;
+
+                    allVegetation.Add(instance);
+                }
+            }
+        }
+
+        Debug.Log(allVegetation.Count);
+        terrainData.treeInstances = allVegetation.ToArray();
     }
 
     public void ADdNewVegetation()
@@ -414,6 +442,7 @@ public class CustomTerrain : MonoBehaviour
                 keptVegetations.Add(vegetations[i]);
             }
         }
+
         //Save at least one, if removing all
         if (keptVegetations.Count == 0)
         {
@@ -422,6 +451,7 @@ public class CustomTerrain : MonoBehaviour
 
         vegetations = keptVegetations;
     }
+
     public void ResetTerrain()
     {
         var heightMap = new float[terrainData.heightmapWidth, terrainData.heightmapHeight];
@@ -490,6 +520,18 @@ public class CustomTerrain : MonoBehaviour
             var property = tagProperty.GetArrayElementAtIndex(0);
             property.stringValue = newTag;
         }
+    }
+
+    //Vegetation
+    [Serializable]
+    public class Vegetation
+    {
+        public float maxHeight = 0.2f;
+        public float maxSlope = 90;
+        public float minHeight = 0.1f;
+        public float minSlope;
+        public GameObject prefab;
+        public bool remove;
     }
 
     [Serializable]
