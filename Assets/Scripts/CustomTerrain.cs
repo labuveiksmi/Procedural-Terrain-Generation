@@ -441,6 +441,16 @@ public class CustomTerrain : MonoBehaviour
                     {
                         float treeHeight = (hit.point.y - transform.position.y) / terrainData.size.y;
                         instance.position.y = treeHeight;
+
+                        #region TerrainScaleAdjust
+
+                        instance.position = new Vector3(instance.position.x * terrainData.size.x/terrainData.alphamapWidth,
+                            instance.position.y,
+                            instance.position.z * terrainData.size.z/terrainData.alphamapHeight);
+
+                        #endregion
+                        
+                        
                         instance.rotation = Random.Range(vegetations[treeProt].minRotation,
                             vegetations[treeProt].maxRotation);
                         instance.prototypeIndex = treeProt;
