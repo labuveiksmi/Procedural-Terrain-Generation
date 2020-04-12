@@ -7,6 +7,12 @@ using Random = UnityEngine.Random;
 [ExecuteInEditMode]
 public class CustomTerrain : MonoBehaviour
 {
+    public enum TagType
+    {
+        Tag = 0,
+        Layer = 1
+    }
+
     public enum VoronoiFunction
     {
         Linear,
@@ -14,14 +20,7 @@ public class CustomTerrain : MonoBehaviour
         Combined,
         SinPow
     }
-    public enum TagType
-    {
-        Tag = 0,
-        Layer = 1
-    }
 
-    [SerializeField] private int terrainLayer = -1;
-    
     public float blendingNoiseMultiplier = 0.2f;
     public float blendingNoiseParams = 0.01f;
 
@@ -62,6 +61,8 @@ public class CustomTerrain : MonoBehaviour
 
     public Terrain terrain;
     public TerrainData terrainData;
+
+    [SerializeField] private int terrainLayer = -1;
     public int treeSpacing = 5;
 
     public List<Vegetation> vegetations = new List<Vegetation>
@@ -406,43 +407,57 @@ public class CustomTerrain : MonoBehaviour
                         break;
                     }
 
+                    if (Random.Range(0, 1f) > vegetations[treeProt].density)
+                    {
+                        break;
+                    }
+
                     float thisHeight = terrainData.GetHeight(x, z) / terrainData.size.y;
                     float startHeight = vegetations[treeProt].minHeight;
                     float endHeight = vegetations[treeProt].maxHeight;
 
-                    if (thisHeight < startHeight || thisHeight > endHeight)
+                    float stepness = terrainData.GetSteepness(x / terrainData.size.x,
+                        z / terrainData.size.z);
+
+                    if (thisHeight < startHeight || thisHeight > endHeight ||
+                        stepness < vegetations[treeProt].minSlope || stepness > vegetations[treeProt].maxSlope)
                     {
+                        //This tree prototype not fit to chosen parameters
                         continue;
                     }
+
                     TreeInstance instance = new TreeInstance();
-                    instance.position = new Vector3((x+ Random.Range(-5f, 5f)) / terrainData.size.x,
-                        thisHeight, (z+ Random.Range(-5f, 5f)) / terrainData.size.z);
-                    
-                    Vector3 treeWorldPos = new Vector3(instance.position.x * terrainData.size.x, instance.position.y * terrainData.size.y,
+                    instance.position = new Vector3((x + Random.Range(-5f, 5f)) / terrainData.size.x,
+                        thisHeight, (z + Random.Range(-5f, 5f)) / terrainData.size.z);
+
+                    Vector3 treeWorldPos = new Vector3(instance.position.x * terrainData.size.x,
+                        instance.position.y * terrainData.size.y,
                         instance.position.z * terrainData.size.z) + transform.position;
 
                     RaycastHit hit;
                     int layerMask = 1 << terrainLayer;
-                    if(Physics.Raycast(treeWorldPos, Vector3.down, out hit, 100, layerMask) 
-                       ||Physics.Raycast(treeWorldPos, Vector3.up, out hit, 100, layerMask))
+                    if (Physics.Raycast(treeWorldPos + new Vector3(0, 10, 0), Vector3.down, out hit, 100, layerMask)
+                        || Physics.Raycast(treeWorldPos - new Vector3(0, 10, 0), Vector3.up, out hit, 100, layerMask))
                     {
                         float treeHeight = (hit.point.y - transform.position.y) / terrainData.size.y;
                         instance.position.y = treeHeight;
-                        instance.rotation = Random.Range(0, 360);
+                        instance.rotation = Random.Range(vegetations[treeProt].minRotation,
+                            vegetations[treeProt].maxRotation);
                         instance.prototypeIndex = treeProt;
-                        instance.color = Color.white;
-                        instance.lightmapColor = Color.white;
-                        var scale = 0.95f;
+                        instance.color = Color.Lerp(vegetations[treeProt].color1, vegetations[treeProt].color2,
+                            Random.Range(0, 1f));
+                        instance.lightmapColor = vegetations[treeProt].lightColor;
+
+                        var scale = Random.Range(vegetations[treeProt].minScale, vegetations[treeProt].maxScale);
                         instance.heightScale = scale;
                         instance.widthScale = scale;
 
                         allVegetation.Add(instance);
                     }
-                    
                 }
             }
         }
-        
+
         terrainData.treeInstances = allVegetation.ToArray();
     }
 
@@ -510,10 +525,10 @@ public class CustomTerrain : MonoBehaviour
         var tagManager = new SerializedObject(
             AssetDatabase.LoadMainAssetAtPath("ProjectSettings/TagManager.asset"));
         var tagsProperty = tagManager.FindProperty("tags");
-        
-        AddTag(tagsProperty, "Terrain",TagType.Tag);
-        AddTag(tagsProperty, "Cloud",TagType.Tag);
-        AddTag(tagsProperty, "Shore",TagType.Tag);
+
+        AddTag(tagsProperty, "Terrain", TagType.Tag);
+        AddTag(tagsProperty, "Cloud", TagType.Tag);
+        AddTag(tagsProperty, "Shore", TagType.Tag);
 
         var layerProperties = tagManager.FindProperty("layers");
 
@@ -524,16 +539,13 @@ public class CustomTerrain : MonoBehaviour
         gameObject.layer = terrainLayer;
     }
 
-    private int AddTag(SerializedProperty tagProperty, string newTag,TagType tagType)
+    private int AddTag(SerializedProperty tagProperty, string newTag, TagType tagType)
     {
-  
-
         for (var i = 0; i < tagProperty.arraySize; i++)
         {
             var property = tagProperty.GetArrayElementAtIndex(i);
             if (property.stringValue.Equals(newTag))
             {
-          
                 return i;
             }
         }
@@ -543,7 +555,8 @@ public class CustomTerrain : MonoBehaviour
             tagProperty.InsertArrayElementAtIndex(0);
             var property = tagProperty.GetArrayElementAtIndex(0);
             property.stringValue = newTag;
-        }else
+        }
+        else
         {
             for (int j = 8; j < tagProperty.arraySize; j++)
             {
@@ -563,9 +576,18 @@ public class CustomTerrain : MonoBehaviour
     [Serializable]
     public class Vegetation
     {
+        public Color color1 = Color.white;
+        public Color color2 = Color.white;
+        public float density = 0.5f;
+        public Color lightColor = Color.white;
+
         public float maxHeight = 0.2f;
+        public float maxRotation = 360f;
+        public float maxScale = 1f;
         public float maxSlope = 90;
         public float minHeight = 0.1f;
+        public float minRotation;
+        public float minScale = 0.5f;
         public float minSlope;
         public GameObject prefab;
         public bool remove;
