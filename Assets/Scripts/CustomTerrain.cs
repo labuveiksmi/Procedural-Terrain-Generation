@@ -415,16 +415,30 @@ public class CustomTerrain : MonoBehaviour
                         continue;
                     }
                     TreeInstance instance = new TreeInstance();
-                    instance.position = new Vector3((x+ Random.Range(-5f, 5f)) / terrainData.size.x, thisHeight, (z+ Random.Range(-5f, 5f)) / terrainData.size.z);
-                    instance.rotation = Random.Range(0, 360);
-                    instance.prototypeIndex = treeProt;
-                    instance.color = Color.white;
-                    instance.lightmapColor = Color.white;
-                    var scale = 0.95f;
-                    instance.heightScale = scale;
-                    instance.widthScale = scale;
+                    instance.position = new Vector3((x+ Random.Range(-5f, 5f)) / terrainData.size.x,
+                        thisHeight, (z+ Random.Range(-5f, 5f)) / terrainData.size.z);
+                    
+                    Vector3 treeWorldPos = new Vector3(instance.position.x * terrainData.size.x, instance.position.y * terrainData.size.y,
+                        instance.position.z * terrainData.size.z) + transform.position;
 
-                    allVegetation.Add(instance);
+                    RaycastHit hit;
+                    int layerMask = 1 << terrainLayer;
+                    if(Physics.Raycast(treeWorldPos, Vector3.down, out hit, 100, layerMask) 
+                       ||Physics.Raycast(treeWorldPos, Vector3.up, out hit, 100, layerMask))
+                    {
+                        float treeHeight = (hit.point.y - transform.position.y) / terrainData.size.y;
+                        instance.position.y = treeHeight;
+                        instance.rotation = Random.Range(0, 360);
+                        instance.prototypeIndex = treeProt;
+                        instance.color = Color.white;
+                        instance.lightmapColor = Color.white;
+                        var scale = 0.95f;
+                        instance.heightScale = scale;
+                        instance.widthScale = scale;
+
+                        allVegetation.Add(instance);
+                    }
+                    
                 }
             }
         }
