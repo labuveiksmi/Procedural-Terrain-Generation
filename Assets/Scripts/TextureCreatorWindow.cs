@@ -6,6 +6,9 @@ using UnityEngine;
 public class TextureCreatorWindow : EditorWindow
 {
     private bool alphaToggle;
+
+    private float brightness = 0.5f;
+    private float contrast = 0.5f;
     private string filename = "MyProceduralTexture";
     private bool mapToggle;
     private float perlinHeightScale;
@@ -16,9 +19,6 @@ public class TextureCreatorWindow : EditorWindow
     private float perlinXScale;
     private float perlinYScale;
 
-    private float brightness = 0.5f;
-    private float contrast = 0.5f;
-    
     private Texture2D pTexture2D;
     private bool seamlessToggle;
 
@@ -110,7 +110,7 @@ public class TextureCreatorWindow : EditorWindow
                     }
 
 
-                    float colValue = contrast*(pValue - 0.5f ) + 0.5f * brightness;
+                    float colValue = contrast * (pValue - 0.5f) + 0.5f * brightness;
                     if (minColor > colValue)
                     {
                         minColor = colValue;
@@ -120,6 +120,7 @@ public class TextureCreatorWindow : EditorWindow
                     {
                         maxColor = colValue;
                     }
+
                     pixColor = new Color(colValue, colValue, colValue, alphaToggle ? colValue : 1);
                     pTexture2D.SetPixel(x, y, pixColor);
                 }
@@ -137,10 +138,11 @@ public class TextureCreatorWindow : EditorWindow
                         pixColor.r = colValue;
                         pixColor.g = colValue;
                         pixColor.b = colValue;
-                        pTexture2D.SetPixel(x,y,pixColor);
+                        pTexture2D.SetPixel(x, y, pixColor);
                     }
                 }
             }
+
             pTexture2D.Apply(false, false);
         }
 

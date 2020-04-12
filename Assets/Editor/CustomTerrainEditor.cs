@@ -11,6 +11,8 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty blendingOffset;
     private SerializedProperty heighMapImage;
     private SerializedProperty heighMapScale;
+
+    private Texture2D heightmapTexture;
     private bool midpointDisplacement;
     private SerializedProperty mpDampererPower;
     private SerializedProperty mpMaxHeight;
@@ -31,13 +33,13 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty resetTerrain;
 
     private Vector2 scrollPos;
+    private bool showHeights;
     private bool showLoadHeights;
     private bool showMultiplePerlin;
 
     private bool showRandom;
     private bool showSplatMaps;
     private bool showVoronoi;
-
     private SerializedProperty smoothAmount;
 
     private SerializedProperty splatHeights;
@@ -50,6 +52,13 @@ public class CustomTerrainEditor : Editor
     private SerializedProperty voronoiMinHeight;
     private SerializedProperty voronoiPeaksCount;
 
+  
+    //Vegetation
+    private GUITableState vegMapTable;
+    private SerializedProperty maxTrees;
+    private SerializedProperty treeSpacing;
+    private bool showVegetation;
+    
     private void OnEnable()
     {
         RandomTerrainProperties();
@@ -57,6 +66,8 @@ public class CustomTerrainEditor : Editor
         VoronoiProperties();
         MidpointDisplacementProperties();
         SplatMapProperties();
+        VegetationProperties();
+        heightmapTexture = new Texture2D(513,513, TextureFormat.ARGB32,false);
         smoothAmount = serializedObject.FindProperty("smoothAmount");
     }
 
@@ -108,6 +119,12 @@ public class CustomTerrainEditor : Editor
         blendingNoiseMultiplier = serializedObject.FindProperty("blendingNoiseMultiplier");
     }
 
+    private void VegetationProperties()
+    {
+        vegMapTable = new GUITableState("vegMapTable");
+        maxTrees = serializedObject.FindProperty("maxTrees");
+        treeSpacing = serializedObject.FindProperty("treeSpacing");
+    }
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -125,15 +142,52 @@ public class CustomTerrainEditor : Editor
         VoronoiTessellationGUI(terrain);
         MidpointDisplacementGUI(terrain);
         SplatMapsGUI(terrain);
-
+        VegetationGUI(terrain);
         EditorGUILayout.IntSlider(smoothAmount, 1, 20, new GUIContent("Times"));
         if (GUILayout.Button("Smooth")) terrain.Smooth();
 
         if (GUILayout.Button("Reset")) terrain.ResetTerrain();
 
+        GenerateTexture(terrain);
+
+
         //EditorGUILayout.EndScrollView();
         //EditorGUILayout.EndVertical();
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private void GenerateTexture(CustomTerrain terrain)
+    {
+        showHeights = EditorGUILayout.Foldout(showHeights, "Height Map");
+        if (showHeights)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            int hmtSize = (int) (EditorGUIUtility.currentViewWidth - 100);
+            GUILayout.Label(heightmapTexture, GUILayout.Width(hmtSize), GUILayout.Height(hmtSize));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Refresh", GUILayout.Width(hmtSize)))
+            {
+                float[,] heightMap = terrain.terrainData.GetHeights(0, 0, terrain.terrainData.heightmapWidth,
+                    terrain.terrainData.heightmapHeight);
+
+                for (int y = 0; y < terrain.terrainData.heightmapHeight; y++)
+                {
+                    for (int x = 0; x < terrain.terrainData.heightmapWidth; x++)
+                    {
+                        heightmapTexture.SetPixel(x, y, new Color(heightMap[x, y], heightMap[x, y], heightMap[x, y], 1));
+                    }
+                }
+
+                heightmapTexture.Apply();
+            }
+
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+        }
     }
 
     private void MidpointDisplacementGUI(CustomTerrain terrain)
@@ -143,8 +197,8 @@ public class CustomTerrainEditor : Editor
         {
             GUILayout.Label("Midpoint Displacement", EditorStyles.boldLabel);
             EditorGUILayout.Slider(mpRoughtness, 0f, 5f, new GUIContent("roughtness"));
-            EditorGUILayout.PropertyField(mpMinHeight, new GUIContent("MP Min Heigt"));
-            EditorGUILayout.PropertyField(mpMaxHeight, new GUIContent("MP Max Heigt"));
+            EditorGUILayout.PropertyField(mpMinHeight, new GUIContent("MP Min Height"));
+            EditorGUILayout.PropertyField(mpMaxHeight, new GUIContent("MP Max Height"));
             EditorGUILayout.PropertyField(mpDampererPower, new GUIContent("MP Damperer Power"));
 
             if (GUILayout.Button("Midpoint Displacement")) terrain.MidpointDisplacement();
@@ -254,6 +308,41 @@ public class CustomTerrainEditor : Editor
             EditorGUILayout.EndHorizontal();
 
             if (GUILayout.Button("Apply")) terrain.SplatMaps();
+        }
+    }
+    
+    private void VegetationGUI(CustomTerrain terrain)
+    {
+        showVegetation = EditorGUILayout.Foldout(showVegetation, "Vegetation");
+        if (showVegetation)
+        {
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Label("Vegetation", EditorStyles.boldLabel);
+
+            EditorGUILayout.IntSlider(maxTrees, 0, 10000, new GUIContent("Max Trees"));
+            EditorGUILayout.IntSlider(treeSpacing, 2, 20, new GUIContent("Tree Spacing"));
+            
+
+            vegMapTable = GUITableLayout.DrawTable(vegMapTable,
+                serializedObject.FindProperty(nameof(terrain.vegetations)));
+            GUILayout.Space(20);
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+"))
+            {
+                terrain.ADdNewVegetation();
+            }
+
+            if (GUILayout.Button("-"))
+            {
+                terrain.RemoveVegetation();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Apply"))
+            {
+                terrain.PlanVegetation();
+            };
         }
     }
 }

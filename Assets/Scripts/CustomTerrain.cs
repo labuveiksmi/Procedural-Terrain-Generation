@@ -61,6 +61,25 @@ public class CustomTerrain : MonoBehaviour
     public float voronoiMinHeight;
     public int voronoiPeaksCount = 1;
 
+    //Vegetation
+    [Serializable]
+    public class Vegetation
+    {
+        public GameObject prefab;
+        public float minHeight = 0.1f;
+        public float maxHeight = 0.2f;
+        public float minSlope = 0;
+        public float maxSlope = 90;
+        public bool remove = false;
+    }
+
+    public List<Vegetation> vegetations = new List<Vegetation>()
+    {
+        new Vegetation()
+    };
+
+    public int maxTrees = 5000;
+    public int treeSpacing = 5;
     public void AddNewSplatHeight()
     {
         splatHeights.Add(new SplatHeights());
@@ -366,6 +385,43 @@ public class CustomTerrain : MonoBehaviour
         terrainData.SetHeights(0, 0, heightMap);
     }
 
+    public void PlanVegetation()
+    {
+        TreePrototype[] newTreePrototypes;
+        newTreePrototypes = new TreePrototype[vegetations.Count];
+        for (int i = 0; i < newTreePrototypes.Length; i++)
+        {
+            newTreePrototypes[i] = new TreePrototype();
+            newTreePrototypes[i].prefab = vegetations[i].prefab;
+        }
+
+        terrainData.treePrototypes = newTreePrototypes;
+    }
+
+    public void ADdNewVegetation()
+    {
+        vegetations.Add(new Vegetation());
+    }
+
+    //TODO make generic method of removing from table
+    public void RemoveVegetation()
+    {
+        List<Vegetation> keptVegetations = new List<Vegetation>();
+        for (int i = 0; i < vegetations.Count; i++)
+        {
+            if (!vegetations[i].remove)
+            {
+                keptVegetations.Add(vegetations[i]);
+            }
+        }
+        //Save at least one, if removing all
+        if (keptVegetations.Count == 0)
+        {
+            keptVegetations.Add(vegetations[0]);
+        }
+
+        vegetations = keptVegetations;
+    }
     public void ResetTerrain()
     {
         var heightMap = new float[terrainData.heightmapWidth, terrainData.heightmapHeight];
